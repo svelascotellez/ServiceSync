@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String       @id @default(uuid())
+  email         String       @unique
+  passwordHash  String
+  name          String
+  role          String       // "admin", "worker", "resident"
+  phone         String?
+  photoUrl      String?
+  apartment     String?      // Only for residents
+  workerType    String?      // e.g. "Cleaner", "Gardener" - Only for workers
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  assignedTasks Task[]       @relation("AssignedTo")
+  createdTasks  Task[]       @relation("CreatedBy")
+  attendances   Attendance[]
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  location    String
+  status      String    @default("pending") // "pending", "in-progress", "completed"
+  priority    String    @default("Medium")  // "Low", "Medium", "High"
+  type        String    @default("General") // "Cleaning", "Maintenance", etc.
+  notes       String?   // Added by worker upon completion
+  rating      Int?      // Given by resident/admin (1-5)
+
+  assignedToId String?
+  assignedTo   User?    @relation("AssignedTo", fields: [assignedToId], references: [id])
+  
+  createdById  String
+  createdBy    User     @relation("CreatedBy", fields: [createdById], references: [id])
+
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  startPhotoUrl   String?
+  startPhotoTime  DateTime?
+  startPhotoLat   Float?
+  startPhotoLng   Float?
+
+  endPhotoUrl     String?
+  endPhotoTime    DateTime?
+  endPhotoLat     Float?
+  endPhotoLng     Float?
+}
+
+model Attendance {
+  id           String    @id @default(uuid())
+  workerId     String
+  worker       User      @relation(fields: [workerId], references: [id])
+  date         DateTime  @default(now()) // Stored as just the date portion ideally, or checked based on day
+  checkInTime  DateTime  @default(now())
+  checkOutTime DateTime?
+  status       String    @default("Active") // "Active", "Completed"
+  evaluation   String?   // "A Tiempo", "Retardo", "Falta"
+  
+  checkInPhotoUrl     String?
+  checkInLat          Float?
+  checkInLng          Float?
+  checkInLocationTime DateTime?
+
+  checkOutPhotoUrl     String?
+  checkOutLat          Float?
+  checkOutLng          Float?
+  checkOutLocationTime DateTime?
+  
+  createdAt    DateTime  @default(now())
+}
+
+model WorkerType {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  schedule  String?  // JSON stringified array of schedules
+  createdAt DateTime @default(now())
+}

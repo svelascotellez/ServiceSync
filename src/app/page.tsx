@@ -1,66 +1,56 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Navigation */}
+      <nav style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)' }}>ServiceSync</div>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <Link href="/login" className="btn btn-outline">Iniciar Sesión</Link>
+          <Link href="/login" className="btn btn-primary">Acceso Administrador</Link>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 1.5rem', textAlign: 'center' }}>
+        <div className="animate-fade-in" style={{ maxWidth: '800px' }}>
+          <h1 style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '1.5rem', lineHeight: 1.2 }}>
+            Optimiza tus <span style={{ color: 'var(--primary)' }}>Servicios Residenciales</span>
+          </h1>
+          <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', marginBottom: '3rem', maxWidth: '600px', margin: '0 auto 3rem' }}>
+            La plataforma integral para administrar personal de limpieza, jardineros, guardias de seguridad y solicitudes de mantenimiento.
           </p>
+          
+          <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link href="/dashboard" className="glass-panel" style={{ padding: '2rem', flex: '1 1 250px', display: 'flex', flexDirection: 'column', gap: '1rem', textDecoration: 'none', transition: 'transform 0.2s', cursor: 'pointer' }} 
+               onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+               onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+              <div style={{ fontSize: '2rem' }}>👨‍💼</div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Administradores</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Gestiona el personal, asigna tareas y revisa reportes.</p>
+            </Link>
+            
+            <Link href="/worker" className="glass-panel" style={{ padding: '2rem', flex: '1 1 250px', display: 'flex', flexDirection: 'column', gap: '1rem', textDecoration: 'none', transition: 'transform 0.2s', cursor: 'pointer' }}
+               onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+               onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+              <div style={{ fontSize: '2rem' }}>👷</div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Trabajadores</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Visualiza las tareas asignadas y reporta progreso desde cualquier lugar.</p>
+            </Link>
+
+            <Link href="/resident" className="glass-panel" style={{ padding: '2rem', flex: '1 1 250px', display: 'flex', flexDirection: 'column', gap: '1rem', textDecoration: 'none', transition: 'transform 0.2s', cursor: 'pointer' }}
+               onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+               onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+              <div style={{ fontSize: '2rem' }}>🏡</div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Residentes</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Da seguimiento al mantenimiento y envía solicitudes de servicio.</p>
+            </Link>
+          </div>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }
