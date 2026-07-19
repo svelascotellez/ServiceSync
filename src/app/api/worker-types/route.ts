@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name } = await req.json();
+    const { name, schedule } = await req.json();
     if (!name) {
       return NextResponse.json({ error: 'Missing name' }, { status: 400 });
     }

@@ -60,7 +60,7 @@ export function AddUserModal({ role, isOpen, onClose, onSuccess }: AddUserModalP
         throw new Error(data.error || 'Error al crear usuario');
       }
 
-      setFormData({ name: '', email: '', password: '', phone: '', workerType: '', apartment: '' });
+      setFormData({ name: '', email: '', password: '', phone: '', workerType: '', apartment: '', photoUrl: '' });
       onSuccess();
       onClose();
     } catch (err: any) {

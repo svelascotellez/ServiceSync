@@ -27,7 +27,7 @@ export function ExcelUpload({ role, onSuccess }: ExcelUploadProps) {
         const wb = XLSX.read(bstr, { type: 'binary' });
         const wsname = wb.SheetNames[0];
         const ws = wb.Sheets[wsname];
-        const data = XLSX.utils.sheet_to_json(ws);
+        const data = XLSX.utils.sheet_to_json<Record<string, any>>(ws);
 
         if (data.length === 0) {
           throw new Error("El archivo Excel está vacío");
