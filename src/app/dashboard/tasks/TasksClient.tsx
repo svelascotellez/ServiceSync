@@ -2,11 +2,28 @@
 
 import { useState } from 'react';
 import { CreateTaskModal } from '@/components/CreateTaskModal';
+import { EditTaskModal } from '@/components/EditTaskModal';
 import { useRouter } from 'next/navigation';
 
 export default function TasksClient({ tasks, workers }: { tasks: any[], workers: any[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<any>(null);
   const router = useRouter();
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de que deseas eliminar esta tarea?')) return;
+    try {
+      const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        router.refresh();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Error al eliminar la tarea');
+      }
+    } catch (err) {
+      alert('Error de red');
+    }
+  };
 
   return (
     <div className="animate-fade-in">
@@ -29,6 +46,7 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
               <th style={{ padding: '1rem' }}>Trabajador Asignado</th>
               <th style={{ padding: '1rem' }}>Prioridad</th>
               <th style={{ padding: '1rem' }}>Estado</th>
+              <th style={{ padding: '1rem', textAlign: 'right' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -52,11 +70,15 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
                     {task.status === 'completed' ? 'Completada' : task.status === 'in-progress' ? 'En Progreso' : 'Pendiente'}
                   </span>
                 </td>
+                <td style={{ padding: '1rem', textAlign: 'right' }}>
+                  <button onClick={() => setEditingTask(task)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', marginRight: '0.5rem' }}>Editar</button>
+                  <button onClick={() => handleDelete(task.id)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', color: 'var(--error)', borderColor: 'var(--error)' }}>Eliminar</button>
+                </td>
               </tr>
             ))}
             {tasks.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
                   No hay tareas creadas.
                 </td>
               </tr>
@@ -72,6 +94,16 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
         onSuccess={() => {
           router.refresh();
         }} 
+      />
+
+      <EditTaskModal
+        workers={workers}
+        isOpen={!!editingTask}
+        onClose={() => setEditingTask(null)}
+        onSuccess={() => {
+          router.refresh();
+        }}
+        initialData={editingTask}
       />
     </div>
   );
