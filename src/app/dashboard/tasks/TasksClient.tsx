@@ -10,10 +10,19 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
   const [editingTask, setEditingTask] = useState<any>(null);
   const router = useRouter();
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar esta tarea?')) return;
+  const handleDelete = async (id: string, isRecurring: boolean) => {
+    let url = `/api/tasks/${id}`;
+    if (isRecurring) {
+      const deleteSeries = confirm('Esta es una tarea periódica. ¿Deseas eliminar también TODAS las tareas futuras pendientes de esta serie?\n\n- OK: Eliminar serie futura\n- Cancelar: Eliminar solo esta tarea');
+      if (deleteSeries) {
+        url += '?deleteSeries=true';
+      }
+    } else {
+      if (!confirm('¿Estás seguro de que deseas eliminar esta tarea?')) return;
+    }
+
     try {
-      const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+      const res = await fetch(url, { method: 'DELETE' });
       if (res.ok) {
         router.refresh();
       } else {
@@ -41,6 +50,7 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+              <th style={{ padding: '1rem' }}>Fecha</th>
               <th style={{ padding: '1rem' }}>Título</th>
               <th style={{ padding: '1rem' }}>Ubicación</th>
               <th style={{ padding: '1rem' }}>Trabajador Asignado</th>
@@ -52,8 +62,12 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
           <tbody>
             {tasks.map(task => (
               <tr key={task.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                <td style={{ padding: '1rem', whiteSpace: 'nowrap' }}>
+                  {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sin fecha'}
+                </td>
                 <td style={{ padding: '1rem', fontWeight: 500 }}>
                   {task.title}
+                  {task.recurringGroupId && <span className="badge badge-pending" style={{ marginLeft: '0.5rem', fontSize: '0.65rem' }}>Periódica</span>}
                   {task.description && <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{task.description}</div>}
                 </td>
                 <td style={{ padding: '1rem' }}>{task.location}</td>
@@ -72,13 +86,13 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
                 </td>
                 <td style={{ padding: '1rem', textAlign: 'right' }}>
                   <button onClick={() => setEditingTask(task)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', marginRight: '0.5rem' }}>Editar</button>
-                  <button onClick={() => handleDelete(task.id)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', color: 'var(--error)', borderColor: 'var(--error)' }}>Eliminar</button>
+                  <button onClick={() => handleDelete(task.id, !!task.recurringGroupId)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', color: 'var(--error)', borderColor: 'var(--error)' }}>Eliminar</button>
                 </td>
               </tr>
             ))}
             {tasks.length === 0 && (
               <tr>
-                <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                <td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
                   No hay tareas creadas.
                 </td>
               </tr>

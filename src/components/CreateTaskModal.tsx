@@ -23,6 +23,11 @@ export function CreateTaskModal({ workers, isOpen, onClose, onSuccess }: CreateT
     location: '',
     assignedToId: '',
     priority: 'Media',
+    dueDate: new Date().toISOString().split('T')[0],
+    recurrence: 'once',
+    recurringDays: [] as number[],
+    isUnlimited: true,
+    recurringEndDate: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -40,10 +45,16 @@ export function CreateTaskModal({ workers, isOpen, onClose, onSuccess }: CreateT
     setError('');
 
     try {
+      const payload = {
+        ...formData,
+        recurringDays: JSON.stringify(formData.recurringDays),
+        recurringEndDate: formData.recurrence === 'recurring' && !formData.isUnlimited ? formData.recurringEndDate : null,
+      };
+
       const res = await fetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -51,7 +62,10 @@ export function CreateTaskModal({ workers, isOpen, onClose, onSuccess }: CreateT
         throw new Error(data.error || 'Error al crear tarea');
       }
 
-      setFormData({ title: '', description: '', location: '', assignedToId: '', priority: 'Media' });
+      setFormData({ 
+        title: '', description: '', location: '', assignedToId: '', priority: 'Media',
+        dueDate: new Date().toISOString().split('T')[0], recurrence: 'once', recurringDays: [], isUnlimited: true, recurringEndDate: ''
+      });
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -102,6 +116,67 @@ export function CreateTaskModal({ workers, isOpen, onClose, onSuccess }: CreateT
               <option value="Alta">Alta</option>
             </select>
           </div>
+
+          <div className="input-group">
+            <label className="input-label">Fecha Programada (Inicio)</label>
+            <input required type="date" className="input-field" value={formData.dueDate} onChange={(e) => setFormData({...formData, dueDate: e.target.value})} />
+          </div>
+
+          <div className="input-group">
+            <label className="input-label">Frecuencia</label>
+            <select className="input-field" value={formData.recurrence} onChange={(e) => setFormData({...formData, recurrence: e.target.value})}>
+              <option value="once">Única (Se realiza una sola vez)</option>
+              <option value="recurring">Periódica (Se repite varios días)</option>
+            </select>
+          </div>
+
+          {formData.recurrence === 'recurring' && (
+            <div style={{ backgroundColor: 'var(--background)', padding: '1rem', borderRadius: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label className="input-label" style={{ marginBottom: '0.5rem' }}>Días de la semana</label>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {[
+                    { val: 1, label: 'L' }, { val: 2, label: 'M' }, { val: 3, label: 'X' },
+                    { val: 4, label: 'J' }, { val: 5, label: 'V' }, { val: 6, label: 'S' }, { val: 0, label: 'D' }
+                  ].map(day => (
+                    <label key={day.val} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', padding: '0.25rem 0.5rem', border: '1px solid var(--border)', borderRadius: '0.25rem', backgroundColor: formData.recurringDays.includes(day.val) ? 'var(--primary)' : 'transparent', color: formData.recurringDays.includes(day.val) ? 'white' : 'inherit' }}>
+                      <input 
+                        type="checkbox" 
+                        style={{ display: 'none' }}
+                        checked={formData.recurringDays.includes(day.val)}
+                        onChange={(e) => {
+                          if (e.target.checked) setFormData({ ...formData, recurringDays: [...formData.recurringDays, day.val] });
+                          else setFormData({ ...formData, recurringDays: formData.recurringDays.filter(d => d !== day.val) });
+                        }}
+                      />
+                      {day.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="input-label">¿Hasta cuándo se repite?</label>
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                    <input type="radio" name="isUnlimited" checked={formData.isUnlimited} onChange={() => setFormData({...formData, isUnlimited: true})} />
+                    Ilimitada (Próximos 6 meses)
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                    <input type="radio" name="isUnlimited" checked={!formData.isUnlimited} onChange={() => setFormData({...formData, isUnlimited: false})} />
+                    Fecha específica
+                  </label>
+                </div>
+              </div>
+
+              {!formData.isUnlimited && (
+                <div className="input-group">
+                  <label className="input-label">Fecha de fin</label>
+                  <input required type="date" min={formData.dueDate} className="input-field" value={formData.recurringEndDate} onChange={(e) => setFormData({...formData, recurringEndDate: e.target.value})} />
+                </div>
+              )}
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
             <button type="button" onClick={onClose} className="btn btn-outline" style={{ flex: 1 }}>Cancelar</button>

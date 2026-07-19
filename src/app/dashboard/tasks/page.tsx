@@ -13,6 +13,8 @@ export default async function TasksPage() {
       location: true,
       status: true,
       priority: true,
+      dueDate: true,
+      recurringGroupId: true,
       assignedTo: {
         select: {
           id: true,
@@ -20,9 +22,10 @@ export default async function TasksPage() {
         }
       }
     },
-    orderBy: {
-      createdAt: 'desc'
-    }
+    orderBy: [
+      { dueDate: 'asc' },
+      { createdAt: 'desc' }
+    ]
   });
 
   // Fetch workers to populate the "Assign to" dropdown

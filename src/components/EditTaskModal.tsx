@@ -25,6 +25,8 @@ export function EditTaskModal({ workers, isOpen, onClose, onSuccess, initialData
     assignedToId: '',
     priority: 'Media',
     status: 'pending',
+    dueDate: '',
+    updateSeries: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -40,6 +42,8 @@ export function EditTaskModal({ workers, isOpen, onClose, onSuccess, initialData
         assignedToId: initialData.assignedTo?.id || '',
         priority: initialData.priority || 'Media',
         status: initialData.status || 'pending',
+        dueDate: initialData.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : '',
+        updateSeries: false,
       });
       setError('');
     }
@@ -116,6 +120,11 @@ export function EditTaskModal({ workers, isOpen, onClose, onSuccess, initialData
           </div>
 
           <div className="input-group">
+            <label className="input-label">Fecha Programada</label>
+            <input required type="date" className="input-field" value={formData.dueDate} onChange={(e) => setFormData({...formData, dueDate: e.target.value})} disabled={formData.updateSeries} title={formData.updateSeries ? "No puedes cambiar la fecha si actualizas toda la serie" : ""} />
+          </div>
+
+          <div className="input-group">
             <label className="input-label">Estado</label>
             <select className="input-field" value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}>
               <option value="pending">Pendiente</option>
@@ -123,6 +132,19 @@ export function EditTaskModal({ workers, isOpen, onClose, onSuccess, initialData
               <option value="completed">Completada</option>
             </select>
           </div>
+
+          {initialData?.recurringGroupId && (
+            <div style={{ backgroundColor: 'var(--background)', padding: '1rem', borderRadius: '0.5rem', marginTop: '0.5rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem' }}>
+                <input 
+                  type="checkbox" 
+                  checked={formData.updateSeries}
+                  onChange={(e) => setFormData({ ...formData, updateSeries: e.target.checked })}
+                />
+                <strong>Esta es una tarea periódica.</strong> Aplicar los cambios a todas las tareas futuras (excepto la fecha).
+              </label>
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
             <button type="button" onClick={onClose} className="btn btn-outline" style={{ flex: 1 }}>Cancelar</button>
