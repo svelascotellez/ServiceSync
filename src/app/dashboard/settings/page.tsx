@@ -19,5 +19,5 @@ export default async function SettingsPage() {
     select: { id: true, name: true }
   });
 
-  return <SettingsClient initialWorkerTypes={workerTypes} />;
+  return <SettingsClient initialWorkerTypes={JSON.parse(JSON.stringify(workerTypes))} />;
 }

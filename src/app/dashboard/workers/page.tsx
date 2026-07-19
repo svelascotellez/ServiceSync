@@ -17,5 +17,5 @@ export default async function WorkersPage() {
     }
   });
 
-  return <WorkersClient workers={workers} />;
+  return <WorkersClient workers={JSON.parse(JSON.stringify(workers))} />;
 }

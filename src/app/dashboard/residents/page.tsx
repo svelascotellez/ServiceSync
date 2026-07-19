@@ -15,5 +15,5 @@ export default async function ResidentsPage() {
     }
   });
 
-  return <ResidentsClient residents={residents} />;
+  return <ResidentsClient residents={JSON.parse(JSON.stringify(residents))} />;
 }

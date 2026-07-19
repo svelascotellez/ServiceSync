@@ -35,5 +35,5 @@ export default async function TasksPage() {
     }
   });
 
-  return <TasksClient tasks={tasks} workers={workers} />;
+  return <TasksClient tasks={JSON.parse(JSON.stringify(tasks))} workers={JSON.parse(JSON.stringify(workers))} />;
 }
