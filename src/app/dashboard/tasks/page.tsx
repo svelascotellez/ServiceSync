@@ -6,7 +6,13 @@ export const dynamic = 'force-dynamic';
 export default async function TasksPage() {
   // Fetch tasks
   const tasks = await prisma.task.findMany({
-    include: {
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      location: true,
+      status: true,
+      priority: true,
       assignedTo: {
         select: {
           id: true,
