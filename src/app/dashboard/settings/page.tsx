@@ -16,7 +16,7 @@ export default async function SettingsPage() {
 
   const workerTypes = await prisma.workerType.findMany({
     orderBy: { name: 'asc' },
-    select: { id: true, name: true }
+    select: { id: true, name: true, schedule: true }
   });
 
   return <SettingsClient initialWorkerTypes={JSON.parse(JSON.stringify(workerTypes))} />;
