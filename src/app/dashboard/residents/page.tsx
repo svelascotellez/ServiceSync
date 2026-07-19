@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import ResidentsClient from './ResidentsClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ResidentsPage() {
   const residents = await prisma.user.findMany({
     where: { role: 'resident' },

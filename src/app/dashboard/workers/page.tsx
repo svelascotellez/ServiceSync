@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import WorkersClient from './WorkersClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function WorkersPage() {
   const workers = await prisma.user.findMany({
     where: { role: 'worker' },
