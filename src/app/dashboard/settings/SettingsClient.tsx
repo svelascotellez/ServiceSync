@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { EditWorkerTypeModal } from '@/components/EditWorkerTypeModal';
 
@@ -12,6 +12,11 @@ interface WorkerType {
 export default function SettingsClient({ initialWorkerTypes }: { initialWorkerTypes: WorkerType[] }) {
   const [workerTypes, setWorkerTypes] = useState<WorkerType[]>(initialWorkerTypes);
   const [newName, setNewName] = useState('');
+
+  useEffect(() => {
+    setWorkerTypes(initialWorkerTypes);
+  }, [initialWorkerTypes]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [editingType, setEditingType] = useState<any>(null);
