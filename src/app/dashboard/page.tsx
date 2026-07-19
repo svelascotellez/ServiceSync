@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardOverview() {
   const activeWorkersCount = await prisma.user.count({ where: { role: 'worker' } });
   const totalResidentsCount = await prisma.user.count({ where: { role: 'resident' } });
