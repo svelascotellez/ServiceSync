@@ -111,14 +111,14 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
       )}
 
       {viewMode === 'kanban' && (
-        <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+        <div className="animate-fade-in" style={{ display: 'flex', gap: '1.5rem', overflowX: 'auto', paddingBottom: '1rem' }}>
           {[
             { id: 'pending', title: 'Pendientes' },
             { id: 'in-progress', title: 'En Progreso' },
             { id: 'completed', title: 'Por Revisar' },
             { id: 'approved', title: 'Aprobadas' },
           ].map(col => (
-            <div key={col.id} className="glass-panel" style={{ padding: '1.5rem', minHeight: '500px', backgroundColor: 'var(--surface)' }}>
+            <div key={col.id} className="glass-panel" style={{ padding: '1.5rem', minHeight: '500px', backgroundColor: 'var(--surface)', flex: '0 0 320px' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem', borderBottom: '2px solid var(--border)', paddingBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
                 {col.title} <span className="badge badge-pending">{tasks.filter(t => t.status === col.id).length}</span>
               </h3>
