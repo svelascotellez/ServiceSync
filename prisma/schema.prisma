@@ -26,6 +26,7 @@ model User {
   assignedTasks Task[]       @relation("AssignedTo")
   createdTasks  Task[]       @relation("CreatedBy")
   attendances   Attendance[]
+  taskComments  TaskComment[]
 }
 
 model Task {
@@ -63,6 +64,22 @@ model Task {
   endPhotoTime    DateTime?
   endPhotoLat     Float?
   endPhotoLng     Float?
+
+  comments        TaskComment[]
+}
+
+model TaskComment {
+  id        String   @id @default(uuid())
+  text      String
+  photoUrl  String?
+  
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now())
 }
 
 model Attendance {

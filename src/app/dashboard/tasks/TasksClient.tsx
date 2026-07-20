@@ -88,8 +88,8 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
                     </span>
                   </td>
                   <td style={{ padding: '1rem' }}>
-                    <span className={`badge ${task.status === 'completed' ? 'badge-completed' : 'badge-pending'}`}>
-                      {task.status === 'completed' ? 'Completada' : task.status === 'in-progress' ? 'En Progreso' : 'Pendiente'}
+                    <span className={`badge ${task.status === 'completed' ? 'badge-completed' : task.status === 'approved' ? 'badge-success' : 'badge-pending'}`}>
+                      {task.status === 'completed' ? 'Por Revisar' : task.status === 'approved' ? 'Aprobada' : task.status === 'in-progress' ? 'En Progreso' : 'Pendiente'}
                     </span>
                   </td>
                   <td style={{ padding: '1rem', textAlign: 'right' }}>
@@ -115,7 +115,8 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
           {[
             { id: 'pending', title: 'Pendientes' },
             { id: 'in-progress', title: 'En Progreso' },
-            { id: 'completed', title: 'Completadas' },
+            { id: 'completed', title: 'Por Revisar' },
+            { id: 'approved', title: 'Aprobadas' },
           ].map(col => (
             <div key={col.id} className="glass-panel" style={{ padding: '1.5rem', minHeight: '500px', backgroundColor: 'var(--surface)' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem', borderBottom: '2px solid var(--border)', paddingBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
@@ -171,8 +172,8 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
                 )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1rem' }}>
-                 <span className={`badge ${task.status === 'completed' ? 'badge-completed' : 'badge-pending'}`} style={{ fontSize: '0.875rem', padding: '0.25rem 0.75rem' }}>
-                    {task.status === 'completed' ? 'Completada' : task.status === 'in-progress' ? 'En Progreso' : 'Pendiente'}
+                 <span className={`badge ${task.status === 'completed' ? 'badge-completed' : task.status === 'approved' ? 'badge-success' : 'badge-pending'}`} style={{ fontSize: '0.875rem', padding: '0.25rem 0.75rem' }}>
+                    {task.status === 'completed' ? 'Por Revisar' : task.status === 'approved' ? 'Aprobada' : task.status === 'in-progress' ? 'En Progreso' : 'Pendiente'}
                  </span>
                  <div style={{ display: 'flex', gap: '0.5rem' }}>
                    <button onClick={() => setEditingTask(task)} className="btn btn-outline" style={{ padding: '0.25rem 1rem', fontSize: '0.875rem' }}>Editar</button>
@@ -204,7 +205,7 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
                       <strong style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{task.title}</strong>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{task.assignedTo?.name || 'Sin Asignar'}</span>
                     </div>
-                    <span style={{ width: '12px', height: '12px', borderRadius: '50%', flexShrink: 0, backgroundColor: task.status === 'completed' ? 'var(--success)' : task.status === 'in-progress' ? 'var(--warning)' : 'var(--error)' }} title={task.status}></span>
+                    <span style={{ width: '12px', height: '12px', borderRadius: '50%', flexShrink: 0, backgroundColor: task.status === 'approved' ? 'var(--success)' : task.status === 'completed' ? '#3B82F6' : task.status === 'in-progress' ? 'var(--warning)' : 'var(--error)' }} title={task.status}></span>
                   </div>
                 ))}
               </div>

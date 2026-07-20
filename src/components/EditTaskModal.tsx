@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { TaskComments } from './TaskComments';
 
 interface Worker {
   id: string;
@@ -129,7 +130,8 @@ export function EditTaskModal({ workers, isOpen, onClose, onSuccess, initialData
             <select className="input-field" value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}>
               <option value="pending">Pendiente</option>
               <option value="in-progress">En Progreso</option>
-              <option value="completed">Completada</option>
+              <option value="completed">Completada (Por Revisar)</option>
+              <option value="approved">Aprobada</option>
             </select>
           </div>
 
@@ -170,6 +172,8 @@ export function EditTaskModal({ workers, isOpen, onClose, onSuccess, initialData
             </button>
           </div>
         </form>
+
+        {initialData && <TaskComments taskId={initialData.id} />}
       </div>
     </div>
   );
