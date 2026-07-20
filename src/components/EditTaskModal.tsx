@@ -146,6 +146,23 @@ export function EditTaskModal({ workers, isOpen, onClose, onSuccess, initialData
             </div>
           )}
 
+          {(initialData?.startPhotoUrl || initialData?.endPhotoUrl) && (
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+              {initialData.startPhotoUrl && (
+                <div style={{ flex: 1 }}>
+                  <label className="input-label">Foto Inicial (Inicio)</label>
+                  <img src={initialData.startPhotoUrl} alt="Foto de inicio" style={{ width: '100%', height: 'auto', borderRadius: '0.5rem', border: '1px solid var(--border)' }} />
+                </div>
+              )}
+              {initialData.endPhotoUrl && (
+                <div style={{ flex: 1 }}>
+                  <label className="input-label">Foto Final (Completado)</label>
+                  <img src={initialData.endPhotoUrl} alt="Foto final" style={{ width: '100%', height: 'auto', borderRadius: '0.5rem', border: '1px solid var(--border)' }} />
+                </div>
+              )}
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
             <button type="button" onClick={onClose} className="btn btn-outline" style={{ flex: 1 }}>Cancelar</button>
             <button type="submit" disabled={loading} className="btn btn-primary" style={{ flex: 1 }}>

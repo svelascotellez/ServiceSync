@@ -135,6 +135,12 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
                     <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       👤 {task.assignedTo ? task.assignedTo.name : 'Sin Asignar'}
                     </div>
+                    {(task.startPhotoUrl || task.endPhotoUrl) && (
+                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                        {task.startPhotoUrl && <img src={task.startPhotoUrl} alt="Inicio" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '0.25rem', border: '1px solid var(--border)' }} title="Foto de Inicio" />}
+                        {task.endPhotoUrl && <img src={task.endPhotoUrl} alt="Fin" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '0.25rem', border: '1px solid var(--border)' }} title="Foto Final" />}
+                      </div>
+                    )}
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button onClick={() => setEditingTask(task)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', flex: 1 }}>Abrir</button>
                     </div>
@@ -157,6 +163,12 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
                 <div style={{ fontSize: '0.875rem', color: 'var(--primary)', fontWeight: 600, marginBottom: '0.25rem' }}>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sin fecha'}</div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{task.title} {task.recurringGroupId && <span className="badge badge-pending" style={{ fontSize: '0.65rem', marginLeft: '0.5rem' }}>Periódica</span>}</h3>
                 <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>📍 {task.location} • 👤 {task.assignedTo?.name || 'Sin Asignar'}</div>
+                {(task.startPhotoUrl || task.endPhotoUrl) && (
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                    {task.startPhotoUrl && <img src={task.startPhotoUrl} alt="Inicio" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '0.5rem', border: '1px solid var(--border)' }} title="Foto de Inicio" />}
+                    {task.endPhotoUrl && <img src={task.endPhotoUrl} alt="Fin" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '0.5rem', border: '1px solid var(--border)' }} title="Foto Final" />}
+                  </div>
+                )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1rem' }}>
                  <span className={`badge ${task.status === 'completed' ? 'badge-completed' : 'badge-pending'}`} style={{ fontSize: '0.875rem', padding: '0.25rem 0.75rem' }}>

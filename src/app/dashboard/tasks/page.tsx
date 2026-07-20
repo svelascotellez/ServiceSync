@@ -15,6 +15,8 @@ export default async function TasksPage() {
       priority: true,
       dueDate: true,
       recurringGroupId: true,
+      startPhotoUrl: true,
+      endPhotoUrl: true,
       assignedTo: {
         select: {
           id: true,
