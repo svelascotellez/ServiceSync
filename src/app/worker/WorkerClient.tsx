@@ -8,6 +8,7 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
   const [attendance, setAttendance] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
 
   useEffect(() => {
     fetch('/api/attendance')
@@ -152,31 +153,76 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
         )}
       </div>
 
-      <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Mis Tareas ({tasks.length})</h2>
-        <span style={{ fontSize: '0.875rem', color: 'var(--primary)', fontWeight: 500 }}>Ver Mapa</span>
+        <div style={{ display: 'flex', backgroundColor: 'var(--background)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+          <button onClick={() => setViewMode('list')} className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Lista</button>
+          <button onClick={() => setViewMode('calendar')} className={`btn ${viewMode === 'calendar' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Calendario</button>
+        </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {tasks.map(task => (
-          <Link href={`/worker/tasks/${task.id}`} key={task.id} style={{ textDecoration: 'none' }}>
-            <div className="glass-panel" style={{ padding: '1rem', display: 'flex', alignItems: 'flex-start', gap: '1rem', borderLeft: task.status === 'completed' ? '4px solid var(--success)' : (task.status === 'in-progress' ? '4px solid var(--primary)' : '4px solid var(--warning)') }}>
-              <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${task.status === 'completed' ? 'var(--success)' : 'var(--text-secondary)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: task.status === 'completed' ? 'var(--success)' : 'transparent', color: 'white', fontSize: '0.75rem', flexShrink: 0, marginTop: '0.25rem' }}>
-                {task.status === 'completed' && '✓'}
-              </div>
-              <div style={{ flex: 1 }}>
-                <h3 style={{ fontWeight: 600, fontSize: '1rem', textDecoration: task.status === 'completed' ? 'line-through' : 'none', color: task.status === 'completed' ? 'var(--text-secondary)' : 'var(--text)' }}>
-                  {task.title}
-                </h3>
-                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                  <span>📍 {task.location}</span>
-                  {task.status === 'in-progress' && <span style={{color: 'var(--primary)', fontWeight: 500}}>En progreso</span>}
+      {viewMode === 'list' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {tasks.map(task => (
+            <Link href={`/worker/tasks/${task.id}`} key={task.id} style={{ textDecoration: 'none' }}>
+              <div className="glass-panel" style={{ padding: '1rem', display: 'flex', alignItems: 'flex-start', gap: '1rem', borderLeft: task.status === 'completed' || task.status === 'approved' ? '4px solid var(--success)' : (task.status === 'in-progress' ? '4px solid var(--primary)' : '4px solid var(--warning)') }}>
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${task.status === 'completed' || task.status === 'approved' ? 'var(--success)' : 'var(--text-secondary)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: task.status === 'completed' || task.status === 'approved' ? 'var(--success)' : 'transparent', color: 'white', fontSize: '0.75rem', flexShrink: 0, marginTop: '0.25rem' }}>
+                  {(task.status === 'completed' || task.status === 'approved') && '✓'}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontWeight: 600, fontSize: '1rem', textDecoration: task.status === 'completed' || task.status === 'approved' ? 'line-through' : 'none', color: task.status === 'completed' || task.status === 'approved' ? 'var(--text-secondary)' : 'var(--text)' }}>
+                    {task.title}
+                  </h3>
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                    <span>📍 {task.location}</span>
+                    {task.status === 'in-progress' && <span style={{color: 'var(--primary)', fontWeight: 500}}>En progreso</span>}
+                  </div>
                 </div>
               </div>
+            </Link>
+          ))}
+          {tasks.length === 0 && (
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No tienes tareas asignadas.</div>
+          )}
+        </div>
+      )}
+
+      {viewMode === 'calendar' && (
+        <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+          {Object.entries(
+            tasks.reduce((acc, task) => {
+              const d = task.dueDate ? new Date(task.dueDate).toLocaleDateString('es-ES', { weekday: 'long', month: 'short', day: 'numeric' }) : 'Sin fecha programada';
+              if (!acc[d]) acc[d] = [];
+              acc[d].push(task);
+              return acc;
+            }, {} as Record<string, any[]>)
+          ).map(([date, dayTasks]) => (
+            <div key={date} className="glass-panel" style={{ padding: '1.5rem' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--primary)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', textTransform: 'capitalize' }}>
+                {date}
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {(dayTasks as any[]).map(task => (
+                  <Link href={`/worker/tasks/${task.id}`} key={task.id} style={{ textDecoration: 'none' }}>
+                    <div style={{ fontSize: '0.875rem', padding: '0.75rem', backgroundColor: 'var(--background)', borderRadius: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', overflow: 'hidden' }}>
+                        <strong style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', textDecoration: task.status === 'completed' || task.status === 'approved' ? 'line-through' : 'none', color: task.status === 'completed' || task.status === 'approved' ? 'var(--text-secondary)' : 'var(--text)' }}>
+                          {task.title}
+                        </strong>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>📍 {task.location}</span>
+                      </div>
+                      <span style={{ width: '12px', height: '12px', borderRadius: '50%', flexShrink: 0, backgroundColor: task.status === 'approved' ? 'var(--success)' : task.status === 'completed' ? '#3B82F6' : task.status === 'in-progress' ? 'var(--warning)' : 'var(--error)' }} title={task.status}></span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </Link>
-        ))}
-      </div>
+          ))}
+          {tasks.length === 0 && (
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No tienes tareas asignadas.</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
