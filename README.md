@@ -11,11 +11,15 @@ ServiceSync is a modern, full-stack field service management application built w
 ## 🚀 Key Features
 
 *   **Role-Based Access Control:** Tailored experiences for Administrators, Workers, and Residents.
-*   **Advanced Task Management:** Create one-off or recurring tasks. Track phases from Pending -> In-Progress -> Completed -> Approved.
-*   **Multiple Views:** Visualize operations via Kanban Boards, Calendars, Timelines, or standard Data Tables.
-*   **Field Operations:** Workers execute tasks, capture initial/final photographic evidence, and automatically register GPS coordinates (via EXIF metadata or browser Geolocation).
-*   **Community Portal:** Residents can view completed tasks, leave star ratings, and interact via photo-enabled task comments.
-*   **Workforce Tracking:** Attendance tracking (Check-in/out) and worker specialty grouping.
+*   **Advanced Task Management:** Create one-off or recurring tasks. Track phases from Pending -> In-Progress -> Completed -> **Approved**.
+*   **Interactive Community Feedback:** Residents and Admins can interact with tasks by leaving text comments and uploading photos for better context.
+*   **Multiple Views:** Visualize operations via Kanban Boards, Calendars, Timelines, or standard Data Tables. (Workers also have access to Kanban, Calendar, and List views!).
+*   **Field Operations Security:** 
+    *   Workers execute tasks, capture initial/final photographic evidence, and automatically register GPS coordinates (via EXIF metadata or browser Geolocation).
+    *   Workers are restricted to only start tasks that are scheduled for the current day.
+*   **Comprehensive Workforce Tracking:** 
+    *   Attendance tracking (Check-in/out).
+    *   Dedicated **Attendance History Tab** for workers to review their check-in/out times, exact coordinates, and selfies.
 *   **Bulk Registration:** Excel/CSV upload support for bulk-creating resident accounts.
 
 ## 💻 Tech Stack
@@ -75,8 +79,8 @@ ServiceSync is a modern, full-stack field service management application built w
 The app leverages Next.js Server Components and Server Actions/Route Handlers to securely communicate with the database via Prisma. 
 
 *   `src/app/dashboard/*`: Protected admin routes for workforce management.
-*   `src/app/worker/*`: Mobile-first interface for technicians.
-*   `src/app/resident/*`: Community feedback and visibility portal.
+*   `src/app/worker/*`: Mobile-first interface for technicians with dedicated Kanban/Calendar views and Attendance tracking.
+*   `src/app/resident/*`: Community feedback and visibility portal, featuring task comments and photo uploads.
 *   `src/app/api/*`: RESTful JSON endpoints handling complex mutations and EXIF image processing.
 
 ## 🔒 License
