@@ -17,11 +17,16 @@ export default async function WorkerPage() {
     redirect('/login');
   }
 
-  // Fetch tasks assigned to this worker for today or in general
   const tasks = await prisma.task.findMany({
     where: { assignedToId: user.id },
     orderBy: { createdAt: 'desc' }
   });
 
-  return <WorkerClient tasks={tasks} />;
+  const attendances = await prisma.attendance.findMany({
+    where: { workerId: user.id },
+    orderBy: { date: 'desc' },
+    take: 30 // Fetch last 30 days
+  });
+
+  return <WorkerClient tasks={tasks} attendancesHistory={attendances} />;
 }
