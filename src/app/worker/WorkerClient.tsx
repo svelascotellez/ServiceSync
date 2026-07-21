@@ -8,7 +8,7 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
   const [attendance, setAttendance] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'calendar' | 'kanban'>('list');
 
   useEffect(() => {
     fetch('/api/attendance')
@@ -158,6 +158,7 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
         <div style={{ display: 'flex', backgroundColor: 'var(--background)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
           <button onClick={() => setViewMode('list')} className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Lista</button>
           <button onClick={() => setViewMode('calendar')} className={`btn ${viewMode === 'calendar' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Calendario</button>
+          <button onClick={() => setViewMode('kanban')} className={`btn ${viewMode === 'kanban' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Tablero</button>
         </div>
       </div>
 
@@ -221,6 +222,43 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
           {tasks.length === 0 && (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No tienes tareas asignadas.</div>
           )}
+        </div>
+      )}
+      {viewMode === 'kanban' && (
+        <div className="animate-fade-in" style={{ display: 'flex', gap: '1.5rem', overflowX: 'auto', paddingBottom: '1rem' }}>
+          {[
+            { id: 'pending', title: 'Pendientes' },
+            { id: 'in-progress', title: 'En Progreso' },
+            { id: 'completed', title: 'Por Revisar' },
+            { id: 'approved', title: 'Aprobadas' },
+          ].map(col => (
+            <div key={col.id} className="glass-panel" style={{ padding: '1.5rem', minHeight: '500px', backgroundColor: 'var(--surface)', flex: '0 0 320px' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem', borderBottom: '2px solid var(--border)', paddingBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
+                {col.title} <span className="badge badge-pending">{tasks.filter(t => t.status === col.id).length}</span>
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {tasks.filter(t => t.status === col.id).map(task => (
+                  <Link href={`/worker/tasks/${task.id}`} key={task.id} style={{ textDecoration: 'none' }}>
+                    <div style={{ backgroundColor: 'var(--background)', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', cursor: 'pointer', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <strong style={{ fontSize: '1.1rem', color: 'var(--text)' }}>{task.title}</strong>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: task.priority === 'Alta' ? 'var(--error)' : 'var(--text-secondary)' }}>{task.priority}</span>
+                      </div>
+                      <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        📅 {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sin fecha'}
+                      </div>
+                      <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                        📍 {task.location}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+                {tasks.filter(t => t.status === col.id).length === 0 && (
+                  <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem 0', fontSize: '0.875rem' }}>Vacío</div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
