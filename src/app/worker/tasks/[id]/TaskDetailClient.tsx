@@ -98,6 +98,16 @@ export default function TaskDetailClient({ task }: { task: any }) {
   const isInProgress = task.status === 'in-progress';
   const isCompleted = task.status === 'completed';
 
+  const getLocalDateString = () => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().split('T')[0];
+  };
+
+  const todayDateStr = getLocalDateString();
+  const taskDateStr = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : null;
+  const canStart = !task.dueDate || taskDateStr === todayDateStr;
+
   return (
     <div className="animate-fade-in" style={{ paddingBottom: '2rem' }}>
       <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -134,19 +144,28 @@ export default function TaskDetailClient({ task }: { task: any }) {
       {isPending && (
         <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center' }}>
           <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>Iniciar Tarea</h3>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>Para comenzar, debes subir una foto del lugar de trabajo.</p>
           
-          <label className="btn btn-primary" style={{ display: 'block', width: '100%', padding: '1rem', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}>
-            {loading ? 'Procesando...' : '📸 Tomar Foto e Iniciar'}
-            <input 
-              type="file" 
-              accept="image/*" 
-              capture="environment"
-              style={{ display: 'none' }} 
-              disabled={loading}
-              onChange={(e) => handlePhotoUpload(e, 'start')} 
-            />
-          </label>
+          {canStart ? (
+            <>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>Para comenzar, debes subir una foto del lugar de trabajo.</p>
+              <label className="btn btn-primary" style={{ display: 'block', width: '100%', padding: '1rem', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}>
+                {loading ? 'Procesando...' : '📸 Tomar Foto e Iniciar'}
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  capture="environment"
+                  style={{ display: 'none' }} 
+                  disabled={loading}
+                  onChange={(e) => handlePhotoUpload(e, 'start')} 
+                />
+              </label>
+            </>
+          ) : (
+            <div style={{ padding: '1rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', color: 'var(--warning)', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
+              <strong>No puedes iniciar esta tarea hoy.</strong>
+              <p style={{ marginTop: '0.25rem' }}>Esta tarea está programada para el {new Date(task.dueDate).toLocaleDateString()}.</p>
+            </div>
+          )}
         </div>
       )}
 
