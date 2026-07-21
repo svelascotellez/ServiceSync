@@ -39,10 +39,10 @@ export default function WorkerLayout({
           <span style={{ fontSize: '1.25rem' }}>📋</span>
           <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Tareas</span>
         </Link>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'var(--text-secondary)', textDecoration: 'none', gap: '0.25rem', opacity: 0.5 }}>
+        <Link href="/worker/attendance" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: pathname === '/worker/attendance' ? 'var(--primary)' : 'var(--text-secondary)', textDecoration: 'none', gap: '0.25rem' }}>
           <span style={{ fontSize: '1.25rem' }}>📅</span>
-          <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Horario</span>
-        </div>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Asistencia</span>
+        </Link>
         <Link href="/worker/profile" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: pathname === '/worker/profile' ? 'var(--primary)' : 'var(--text-secondary)', textDecoration: 'none', gap: '0.25rem' }}>
           <span style={{ fontSize: '1.25rem' }}>👤</span>
           <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Perfil</span>

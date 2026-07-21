@@ -2,9 +2,9 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { redirect } from 'next/navigation';
-import WorkerClient from './WorkerClient';
+import AttendanceClient from './AttendanceClient';
 
-export default async function WorkerPage() {
+export default async function WorkerAttendancePage() {
   const session = await getServerSession(authOptions);
   
   if (!session) {
@@ -17,10 +17,11 @@ export default async function WorkerPage() {
     redirect('/login');
   }
 
-  const tasks = await prisma.task.findMany({
-    where: { assignedToId: user.id },
-    orderBy: { createdAt: 'desc' }
+  const attendances = await prisma.attendance.findMany({
+    where: { workerId: user.id },
+    orderBy: { date: 'desc' },
+    take: 30 // Fetch last 30 days
   });
 
-  return <WorkerClient tasks={tasks} />;
+  return <AttendanceClient attendances={attendances} />;
 }
