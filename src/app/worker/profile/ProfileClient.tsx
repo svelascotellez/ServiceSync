@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 
-export default function ProfileClient({ initialPhotoUrl, user }: { initialPhotoUrl: string | null, user: any }) {
+export default function ProfileClient({ initialPhotoUrl, user, stats }: { initialPhotoUrl: string | null, user: any, stats: any }) {
   const [uploading, setUploading] = useState(false);
   const [photoUrl, setPhotoUrl] = useState(initialPhotoUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -67,20 +67,12 @@ export default function ProfileClient({ initialPhotoUrl, user }: { initialPhotoU
       <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>Estadísticas Personales</h3>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
         <div className="glass-panel" style={{ padding: '1rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary)' }}>24</div>
+          <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary)' }}>{stats.completedTasks}</div>
           <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Tareas Realizadas</div>
         </div>
         <div className="glass-panel" style={{ padding: '1rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--success)' }}>100%</div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>A Tiempo</div>
-        </div>
-        <div className="glass-panel" style={{ padding: '1rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--warning)' }}>4.8</div>
+          <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--warning)' }}>{stats.avgRating}</div>
           <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Calif. Promedio</div>
-        </div>
-        <div className="glass-panel" style={{ padding: '1rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--secondary)' }}>5</div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Días Consecutivos</div>
         </div>
       </div>
 
@@ -89,7 +81,7 @@ export default function ProfileClient({ initialPhotoUrl, user }: { initialPhotoU
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
             <span style={{ color: 'var(--text-secondary)' }}>Teléfono</span>
-            <span style={{ fontWeight: 500 }}>555-0101</span>
+            <span style={{ fontWeight: 500 }}>{user.phone || 'No registrado'}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
             <span style={{ color: 'var(--text-secondary)' }}>Departamento</span>
@@ -97,7 +89,7 @@ export default function ProfileClient({ initialPhotoUrl, user }: { initialPhotoU
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'var(--text-secondary)' }}>Fecha de Ingreso</span>
-            <span style={{ fontWeight: 500 }}>Oct 2023</span>
+            <span style={{ fontWeight: 500 }}>{stats.joinDate}</span>
           </div>
         </div>
       </div>

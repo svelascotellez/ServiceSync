@@ -19,5 +19,31 @@ export default async function ProfilePage() {
     redirect('/login');
   }
 
-  return <ProfileClient initialPhotoUrl={user.photoUrl} user={user} />;
+  // Calculate real stats
+  const completedTasks = await prisma.task.count({
+    where: {
+      assignedToId: user.id,
+      status: { in: ['completed', 'approved'] }
+    }
+  });
+
+  const tasksWithRating = await prisma.task.findMany({
+    where: {
+      assignedToId: user.id,
+      rating: { not: null }
+    },
+    select: { rating: true }
+  });
+
+  const avgRating = tasksWithRating.length > 0 
+    ? (tasksWithRating.reduce((acc, curr) => acc + (curr.rating || 0), 0) / tasksWithRating.length).toFixed(1)
+    : '-';
+
+  const stats = {
+    completedTasks,
+    avgRating,
+    joinDate: user.createdAt.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
+  };
+
+  return <ProfileClient initialPhotoUrl={user.photoUrl} user={user} stats={stats} />;
 }
