@@ -8,7 +8,7 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
   const [attendance, setAttendance] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'calendar' | 'kanban'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'calendar' | 'kanban'>('kanban');
 
   useEffect(() => {
     fetch('/api/attendance')
@@ -107,8 +107,23 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
   return (
     <div className="animate-fade-in">
       <div style={{ marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Resumen de Hoy</h1>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Mi Panel (Dashboard)</h1>
         <p style={{ color: 'var(--text-secondary)' }}>{capitalizedDateStr}</p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+        <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--primary)' }}>
+          <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Total Asignadas</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text)' }}>{tasks.length}</p>
+        </div>
+        <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--warning)' }}>
+          <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Pendientes</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text)' }}>{tasks.filter(t => t.status === 'pending' || t.status === 'in-progress').length}</p>
+        </div>
+        <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--success)' }}>
+          <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Terminadas / Aprobadas</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text)' }}>{tasks.filter(t => t.status === 'completed' || t.status === 'approved').length}</p>
+        </div>
       </div>
 
       {/* Attendance Card */}
