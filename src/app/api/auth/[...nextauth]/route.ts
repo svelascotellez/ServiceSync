@@ -12,27 +12,38 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        try {
+          if (!credentials?.email || !credentials?.password) return null;
 
-        const normalizedEmail = credentials.email.trim().toLowerCase();
+          const normalizedEmail = credentials.email.trim().toLowerCase();
 
-        const user = await prisma.user.findUnique({
-          where: { email: normalizedEmail }
-        });
+          const user = await prisma.user.findUnique({
+            where: { email: normalizedEmail }
+          });
 
-        if (!user) return null;
+          if (!user) {
+            console.log('Login failed: user not found', normalizedEmail);
+            return null;
+          }
 
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.passwordHash);
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.passwordHash);
 
-        if (!isPasswordValid) return null;
+          if (!isPasswordValid) {
+            console.log('Login failed: invalid password for', normalizedEmail);
+            return null;
+          }
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          photoUrl: user.photoUrl,
-        };
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            photoUrl: user.photoUrl,
+          };
+        } catch (err) {
+          console.error('Login error in authorize:', err);
+          return null;
+        }
       }
     })
   ],
