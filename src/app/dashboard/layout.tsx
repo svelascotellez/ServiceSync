@@ -32,6 +32,9 @@ export default function DashboardLayout({
           <Link href="/dashboard/residents" className="btn btn-outline" style={{ justifyContent: 'flex-start', border: 'none' }}>
             🏡 Residentes
           </Link>
+          <Link href="/dashboard/admins" className="btn btn-outline" style={{ justifyContent: 'flex-start', border: 'none' }}>
+            🛡️ Administradores
+          </Link>
           <Link href="/dashboard/settings" className="btn btn-outline" style={{ justifyContent: 'flex-start', border: 'none' }}>
             ⚙️ Configuración
           </Link>
