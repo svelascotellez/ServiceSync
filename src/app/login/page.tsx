@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn, getSession } from 'next-auth/react';
+import { signIn, signOut } from 'next-auth/react';
 import Link from 'next/link';
 
 export default function Login() {
@@ -13,14 +13,23 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {}
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     
+    const cleanEmail = email.trim().toLowerCase();
+
     const result = await signIn('credentials', {
       redirect: false,
-      email,
+      email: cleanEmail,
       password,
     });
 
@@ -32,7 +41,7 @@ export default function Login() {
         const roleRes = await fetch('/api/auth/check-role', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email })
+          body: JSON.stringify({ email: cleanEmail })
         });
         const roleData = await roleRes.json();
         const role = roleData?.role;
