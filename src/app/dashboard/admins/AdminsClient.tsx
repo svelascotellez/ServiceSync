@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { AddUserModal } from '@/components/AddUserModal';
 import { EditUserModal } from '@/components/EditUserModal';
 import { ExcelColumnHeader } from '@/components/ExcelColumnHeader';
+import { ExportExcelButton } from '@/components/ExportExcelButton';
 import { formatCancunDate } from '@/lib/dateUtils';
 import { useRouter } from 'next/navigation';
 
@@ -60,6 +61,14 @@ export default function AdminsClient({ admins }: { admins: any[] }) {
       return sortOrder === 'asc' ? res : -res;
     });
 
+  const adminExportData = filteredAdmins.map(admin => ({
+    'Nombre': admin.name,
+    'Rol': 'Administrador',
+    'Correo Electrónico': admin.email,
+    'Teléfono': admin.phone || 'N/A',
+    'Fecha Registro (Cancún)': formatCancunDate(admin.createdAt)
+  }));
+
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de que deseas eliminar a este administrador? Esta acción no se puede deshacer.')) return;
     
@@ -83,7 +92,8 @@ export default function AdminsClient({ admins }: { admins: any[] }) {
           <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>Directorio de Administradores</h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Administra a los usuarios con permisos de administración total.</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <ExportExcelButton data={adminExportData} filename="Reporte_Administradores_ServiceSync" sheetName="Administradores" buttonText="📊 Exportar Excel" />
           <button className="btn btn-primary" onClick={() => setIsAddModalOpen(true)}>+ Añadir Administrador</button>
         </div>
       </div>

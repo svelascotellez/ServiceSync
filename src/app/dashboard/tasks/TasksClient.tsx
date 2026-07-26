@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { CreateTaskModal } from '@/components/CreateTaskModal';
 import { EditTaskModal } from '@/components/EditTaskModal';
 import { ExcelColumnHeader } from '@/components/ExcelColumnHeader';
+import { ExportExcelButton } from '@/components/ExportExcelButton';
 import { formatCancunDate, getCancunTodayKey, formatCancunCalendarDayLabel } from '@/lib/dateUtils';
 import { useRouter } from 'next/navigation';
 
@@ -53,47 +54,59 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
       return true;
     })
     .sort((a, b) => {
-      let result = 0;
+      let res = 0;
       if (sortBy === 'dueDate') {
         const timeA = a.dueDate ? new Date(a.dueDate).getTime() : 0;
         const timeB = b.dueDate ? new Date(b.dueDate).getTime() : 0;
-        result = timeA - timeB;
+        res = timeA - timeB;
       } else if (sortBy === 'priority') {
-        const wA = priorityWeight[a.priority] || 0;
-        const wB = priorityWeight[b.priority] || 0;
-        result = wB - wA;
+        res = (priorityWeight[b.priority] || 0) - (priorityWeight[a.priority] || 0);
       } else if (sortBy === 'title') {
-        result = a.title.localeCompare(b.title);
+        res = (a.title || '').localeCompare(b.title || '');
       } else if (sortBy === 'createdAt') {
         const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        result = timeB - timeA;
+        res = timeA - timeB;
       }
-
-      return sortOrder === 'asc' ? result : -result;
+      return sortOrder === 'asc' ? res : -res;
     });
 
+  const taskExportData = filteredTasks.map(t => ({
+    'ID Tarea': t.id,
+    'Título': t.title,
+    'Ubicación': t.location,
+    'Trabajador Asignado': t.assignedTo ? t.assignedTo.name : 'Sin Asignar',
+    'Prioridad': t.priority,
+    'Estado': t.status === 'cancelled' ? 'Cancelada' : t.status === 'completed' ? 'Por Revisar' : t.status === 'approved' ? 'Aprobada' : t.status === 'in-progress' ? 'En Progreso' : 'Pendiente',
+    'Fecha Límite (Cancún)': formatCancunDate(t.dueDate),
+    'Descripción': t.description || '',
+    'Tarea Periódica': t.recurringGroupId ? 'Sí' : 'No'
+  }));
+
   const handleDelete = async (id: string, isRecurring: boolean) => {
-    let url = `/api/tasks/${id}`;
     if (isRecurring) {
-      const deleteSeries = confirm('Esta es una tarea periódica. ¿Deseas eliminar también TODAS las tareas futuras pendientes de esta serie?\n\n- OK: Eliminar serie futura\n- Cancelar: Eliminar solo esta tarea');
-      if (deleteSeries) {
-        url += '?deleteSeries=true';
+      const option = prompt('Esta tarea es periódica.\nEscribe "1" para eliminar SOLO esta tarea.\nEscribe "2" para eliminar ESTA Y TODAS LAS TAREAS FUTURAS del grupo.');
+      if (option === '1') {
+        await fetch(`/api/tasks/${id}?scope=single`, { method: 'DELETE' });
+        router.refresh();
+      } else if (option === '2') {
+        await fetch(`/api/tasks/${id}?scope=future`, { method: 'DELETE' });
+        router.refresh();
       }
     } else {
-      if (!confirm('¿Estás seguro de que deseas eliminar esta tarea?')) return;
-    }
-
-    try {
-      const res = await fetch(url, { method: 'DELETE' });
-      if (res.ok) {
+      if (confirm('¿Estás seguro de eliminar esta tarea?')) {
+        await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
         router.refresh();
-      } else {
-        const data = await res.json();
-        alert(data.error || 'Error al eliminar la tarea');
       }
-    } catch (err) {
-      alert('Error de red');
+    }
+  };
+
+  const handleHeaderClick = (col: 'dueDate' | 'priority' | 'title' | 'createdAt') => {
+    if (sortBy === col) {
+      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(col);
+      setSortOrder('asc');
     }
   };
 
@@ -104,13 +117,14 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
           <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>Gestión de Tareas</h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Supervisa, filtra y asigna tareas al personal.</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', backgroundColor: 'var(--surface)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
             <button onClick={() => setViewMode('kanban')} className={`btn ${viewMode === 'kanban' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Tablero</button>
             <button onClick={() => setViewMode('calendar')} className={`btn ${viewMode === 'calendar' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Calendario</button>
             <button onClick={() => setViewMode('timeline')} className={`btn ${viewMode === 'timeline' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Tarjetas</button>
             <button onClick={() => setViewMode('table')} className={`btn ${viewMode === 'table' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Lista</button>
           </div>
+          <ExportExcelButton data={taskExportData} filename="Reporte_Tareas_ServiceSync" sheetName="Tareas" buttonText="📊 Exportar Excel" />
           <button className="btn btn-gold" onClick={() => setIsModalOpen(true)}>+ Crear Tarea</button>
         </div>
       </div>

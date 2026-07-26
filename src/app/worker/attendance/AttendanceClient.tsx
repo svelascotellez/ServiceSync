@@ -2,12 +2,24 @@
 
 import Link from 'next/link';
 import { formatCancunDate, formatCancunTime } from '@/lib/dateUtils';
+import { ExportExcelButton } from '@/components/ExportExcelButton';
 
 export default function AttendanceClient({ attendances }: { attendances: any[] }) {
+  const attendanceExportData = attendances.map(att => ({
+    'Fecha (Cancún)': formatCancunDate(att.date),
+    'Hora Entrada': att.checkInTime ? formatCancunTime(att.checkInTime) : '-',
+    'Hora Salida': att.checkOutTime ? formatCancunTime(att.checkOutTime) : '-',
+    'Coordenadas Entrada': att.checkInLat ? `${att.checkInLat.toFixed(5)}, ${att.checkInLng?.toFixed(5)}` : 'N/A',
+    'Coordenadas Salida': att.checkOutLat ? `${att.checkOutLat.toFixed(5)}, ${att.checkOutLng?.toFixed(5)}` : 'N/A',
+    'Foto Entrada': att.checkInPhotoUrl || '',
+    'Foto Salida': att.checkOutPhotoUrl || ''
+  }));
+
   return (
     <div className="animate-fade-in" style={{ paddingBottom: '2rem' }}>
-      <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Historial de Asistencia (Cancún)</h1>
+        <ExportExcelButton data={attendanceExportData} filename="Reporte_Asistencias_ServiceSync" sheetName="Asistencias" buttonText="📊 Exportar Excel" />
       </div>
 
       <div className="glass-panel" style={{ padding: '1.5rem', overflowX: 'auto' }}>

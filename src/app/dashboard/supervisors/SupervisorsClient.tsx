@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { AddUserModal } from '@/components/AddUserModal';
 import { EditUserModal } from '@/components/EditUserModal';
 import { ExcelColumnHeader } from '@/components/ExcelColumnHeader';
+import { ExportExcelButton } from '@/components/ExportExcelButton';
 import { formatCancunDate } from '@/lib/dateUtils';
 import { useRouter } from 'next/navigation';
 
@@ -56,6 +57,14 @@ export default function SupervisorsClient({ supervisors }: { supervisors: any[] 
       return sortOrder === 'asc' ? res : -res;
     });
 
+  const supervisorExportData = filteredSupervisors.map(sup => ({
+    'Nombre': sup.name,
+    'Rol': 'Supervisor',
+    'Correo Electrónico': sup.email,
+    'Teléfono': sup.phone || 'N/A',
+    'Fecha Registro (Cancún)': formatCancunDate(sup.createdAt)
+  }));
+
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de que deseas eliminar a este supervisor? Esta acción no se puede deshacer.')) return;
     
@@ -79,7 +88,8 @@ export default function SupervisorsClient({ supervisors }: { supervisors: any[] 
           <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>Directorio de Supervisores</h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Administra el personal con permisos de supervisión de campo y asignación de tareas.</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <ExportExcelButton data={supervisorExportData} filename="Reporte_Supervisores_ServiceSync" sheetName="Supervisores" buttonText="📊 Exportar Excel" />
           <button className="btn btn-gold" onClick={() => setIsAddModalOpen(true)}>+ Añadir Supervisor</button>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { ExcelUpload } from '@/components/ExcelUpload';
 import { AddUserModal } from '@/components/AddUserModal';
 import { EditUserModal } from '@/components/EditUserModal';
 import { ExcelColumnHeader } from '@/components/ExcelColumnHeader';
+import { ExportExcelButton } from '@/components/ExportExcelButton';
 import { useRouter } from 'next/navigation';
 
 export default function ResidentsClient({ residents }: { residents: any[] }) {
@@ -45,12 +46,18 @@ export default function ResidentsClient({ residents }: { residents: any[] }) {
       if (sortColumn === 'name') {
         res = (a.name || '').localeCompare(b.name || '');
       } else if (sortColumn === 'apartment') {
-        res = (a.apartment || 'N/A').localeCompare(b.apartment || 'N/A');
+        res = (a.apartment || '').localeCompare(b.apartment || '');
       } else if (sortColumn === 'email') {
         res = (a.email || '').localeCompare(b.email || '');
       }
       return sortOrder === 'asc' ? res : -res;
     });
+
+  const residentExportData = filteredResidents.map(res => ({
+    'Nombre': res.name,
+    'Villa / Departamento / Lote': res.apartment || 'N/A',
+    'Correo Electrónico': res.email
+  }));
 
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de que deseas eliminar a este residente? Esta acción no se puede deshacer.')) return;
@@ -75,8 +82,9 @@ export default function ResidentsClient({ residents }: { residents: any[] }) {
           <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>Directorio de Residentes</h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Administra a los residentes de la comunidad y sus solicitudes.</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <ExcelUpload role="resident" onSuccess={() => router.refresh()} />
+          <ExportExcelButton data={residentExportData} filename="Reporte_Residentes_ServiceSync" sheetName="Residentes" buttonText="📊 Exportar Excel" />
           <button className="btn btn-primary" onClick={() => setIsAddModalOpen(true)}>+ Añadir Residente</button>
         </div>
       </div>

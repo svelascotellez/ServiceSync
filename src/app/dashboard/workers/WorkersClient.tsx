@@ -5,6 +5,7 @@ import { ExcelUpload } from '@/components/ExcelUpload';
 import { AddUserModal } from '@/components/AddUserModal';
 import { EditUserModal } from '@/components/EditUserModal';
 import { ExcelColumnHeader } from '@/components/ExcelColumnHeader';
+import { ExportExcelButton } from '@/components/ExportExcelButton';
 import { useRouter } from 'next/navigation';
 
 export default function WorkersClient({ workers }: { workers: any[] }) {
@@ -61,6 +62,13 @@ export default function WorkersClient({ workers }: { workers: any[] }) {
       return sortOrder === 'asc' ? res : -res;
     });
 
+  const workerExportData = filteredWorkers.map(w => ({
+    'Nombre': w.name,
+    'Tipo de Servicio': w.workerType || 'General',
+    'Correo Electrónico': w.email,
+    'Teléfono': w.phone || 'N/A'
+  }));
+
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de que deseas eliminar a este trabajador? Esta acción no se puede deshacer.')) return;
     
@@ -84,8 +92,9 @@ export default function WorkersClient({ workers }: { workers: any[] }) {
           <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>Directorio de Trabajadores</h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Administra tu personal de servicio.</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <ExcelUpload role="worker" onSuccess={() => router.refresh()} />
+          <ExportExcelButton data={workerExportData} filename="Reporte_Trabajadores_ServiceSync" sheetName="Trabajadores" buttonText="📊 Exportar Excel" />
           <button className="btn btn-primary" onClick={() => setIsAddModalOpen(true)}>+ Añadir Trabajador</button>
         </div>
       </div>
