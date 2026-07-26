@@ -27,11 +27,14 @@ export default function DashboardLayout({
           </Link>
         </div>
         <nav style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
-          <Link href="/dashboard" className="btn btn-outline" style={{ justifyContent: 'flex-start', border: 'none', backgroundColor: 'var(--surface-hover)' }}>
+          <Link href="/dashboard" className="btn btn-outline" style={{ justifyContent: 'flex-start', border: 'none' }}>
             📊 Resumen
           </Link>
           <Link href="/dashboard/tasks" className="btn btn-outline" style={{ justifyContent: 'flex-start', border: 'none' }}>
             📋 Tareas
+          </Link>
+          <Link href="/dashboard/supervisors" className="btn btn-outline" style={{ justifyContent: 'flex-start', border: 'none' }}>
+            👔 Supervisores
           </Link>
           <Link href="/dashboard/workers" className="btn btn-outline" style={{ justifyContent: 'flex-start', border: 'none' }}>
             👷 Trabajadores

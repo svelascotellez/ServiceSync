@@ -1,11 +1,11 @@
 import { prisma } from '@/lib/prisma';
-import AdminsClient from './AdminsClient';
+import SupervisorsClient from './SupervisorsClient';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminsPage() {
-  const admins = await prisma.user.findMany({
-    where: { role: 'admin' },
+export default async function SupervisorsPage() {
+  const supervisors = await prisma.user.findMany({
+    where: { role: 'supervisor' },
     orderBy: { name: 'asc' },
     select: {
       id: true,
@@ -18,5 +18,5 @@ export default async function AdminsPage() {
     }
   });
 
-  return <AdminsClient admins={JSON.parse(JSON.stringify(admins))} />;
+  return <SupervisorsClient supervisors={JSON.parse(JSON.stringify(supervisors))} />;
 }
