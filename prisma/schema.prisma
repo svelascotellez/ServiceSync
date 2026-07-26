@@ -15,7 +15,7 @@ model User {
   email         String       @unique
   passwordHash  String
   name          String
-  role          String       // "admin", "worker", "resident"
+  role          String       // "admin", "worker", "resident", "supervisor"
   phone         String?
   photoUrl      String?
   apartment     String?      // Only for residents

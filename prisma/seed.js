@@ -45,7 +45,20 @@ async function main() {
     },
   });
 
-  console.log('Seeded users:', { admin: admin.email, worker: worker.email, resident: resident.email });
+  // Supervisor
+  const supervisor = await prisma.user.upsert({
+    where: { email: 'supervisor@servicesync.com' },
+    update: {},
+    create: {
+      email: 'supervisor@servicesync.com',
+      name: 'Carlos R. (Supervisor)',
+      passwordHash,
+      role: 'supervisor',
+      phone: '555-0202',
+    },
+  });
+
+  console.log('Seeded users:', { admin: admin.email, supervisor: supervisor.email, worker: worker.email, resident: resident.email });
 }
 
 main()

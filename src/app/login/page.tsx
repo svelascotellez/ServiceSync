@@ -97,6 +97,7 @@ export default function Login() {
           <p style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Cuentas de Prueba (Contraseña: password123)</p>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: 'var(--text-secondary)' }}>
             <li>Admin: admin@servicesync.com</li>
+            <li>Supervisor: supervisor@servicesync.com</li>
             <li>Trabajador: worker@servicesync.com</li>
             <li>Residente: resident@servicesync.com</li>
           </ul>

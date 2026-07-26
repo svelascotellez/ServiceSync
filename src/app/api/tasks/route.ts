@@ -6,7 +6,8 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== 'admin') {
+    const role = (session?.user as any)?.role;
+    if (!session || (role !== 'admin' && role !== 'supervisor')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -27,7 +28,8 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== 'admin') {
+    const role = (session?.user as any)?.role;
+    if (!session || (role !== 'admin' && role !== 'supervisor')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
