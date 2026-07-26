@@ -4,6 +4,7 @@ import { useState } from 'react';
 import exifr from 'exifr';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { formatCancunDate, formatCancunDateTime } from '@/lib/dateUtils';
 
 export default function TaskDetailClient({ task }: { task: any }) {
   const router = useRouter();
@@ -163,7 +164,7 @@ export default function TaskDetailClient({ task }: { task: any }) {
           ) : (
             <div style={{ padding: '1rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', color: 'var(--warning)', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
               <strong>No puedes iniciar esta tarea hoy.</strong>
-              <p style={{ marginTop: '0.25rem' }}>Esta tarea está programada para el {new Date(task.dueDate).toLocaleDateString()}.</p>
+              <p style={{ marginTop: '0.25rem' }}>Esta tarea está programada para el {formatCancunDate(task.dueDate)}.</p>
             </div>
           )}
         </div>
@@ -197,17 +198,17 @@ export default function TaskDetailClient({ task }: { task: any }) {
                 <p style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Foto Inicial</p>
                 <img src={task.startPhotoUrl} alt="Inicio" style={{ width: '100%', borderRadius: '8px', objectFit: 'cover' }} />
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                  {task.startPhotoTime && <div>⏰ {new Date(task.startPhotoTime).toLocaleString()}</div>}
+                  {task.startPhotoTime && <div>⏰ {formatCancunDateTime(task.startPhotoTime)}</div>}
                   {task.startPhotoLat && <div>📍 {task.startPhotoLat.toFixed(6)}, {task.startPhotoLng?.toFixed(6)}</div>}
                 </div>
               </div>
             )}
             {task.endPhotoUrl && (
-              <div className="glass-panel" style={{ padding: '1rem' }}>
+              <div className="glass-panel" style={{ padding: '1.5rem' }}>
                 <p style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Foto Final</p>
                 <img src={task.endPhotoUrl} alt="Fin" style={{ width: '100%', borderRadius: '8px', objectFit: 'cover' }} />
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                  {task.endPhotoTime && <div>⏰ {new Date(task.endPhotoTime).toLocaleString()}</div>}
+                  {task.endPhotoTime && <div>⏰ {formatCancunDateTime(task.endPhotoTime)}</div>}
                   {task.endPhotoLat && <div>📍 {task.endPhotoLat.toFixed(6)}, {task.endPhotoLng?.toFixed(6)}</div>}
                 </div>
               </div>

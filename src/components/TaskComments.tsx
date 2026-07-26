@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
+import { formatCancunDateTime } from '@/lib/dateUtils';
 
 export function TaskComments({ taskId }: { taskId: string }) {
   const [comments, setComments] = useState<any[]>([]);
@@ -72,7 +73,7 @@ export function TaskComments({ taskId }: { taskId: string }) {
             <div key={c.id} style={{ backgroundColor: 'var(--background)', padding: '1rem', borderRadius: '0.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
                 <strong style={{ color: 'var(--primary)' }}>{c.user?.name} ({c.user?.role})</strong>
-                <span style={{ color: 'var(--text-secondary)' }}>{new Date(c.createdAt).toLocaleString()}</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{formatCancunDateTime(c.createdAt)}</span>
               </div>
               {c.text && <p style={{ fontSize: '0.9rem', marginBottom: c.photoUrl ? '0.5rem' : '0' }}>{c.text}</p>}
               {c.photoUrl && (

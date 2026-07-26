@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { AddUserModal } from '@/components/AddUserModal';
 import { EditUserModal } from '@/components/EditUserModal';
 import { ExcelColumnHeader } from '@/components/ExcelColumnHeader';
+import { formatCancunDate } from '@/lib/dateUtils';
 import { useRouter } from 'next/navigation';
 
 export default function SupervisorsClient({ supervisors }: { supervisors: any[] }) {
@@ -196,7 +197,7 @@ export default function SupervisorsClient({ supervisors }: { supervisors: any[] 
                 </td>
                 <td style={{ padding: '0.85rem 1rem', color: 'var(--text-secondary)' }}>{sup.email}</td>
                 <td style={{ padding: '0.85rem 1rem', color: 'var(--text-secondary)' }}>{sup.phone || 'N/A'}</td>
-                <td style={{ padding: '0.85rem 1rem', color: 'var(--text-secondary)' }}>{new Date(sup.createdAt).toLocaleDateString()}</td>
+                <td style={{ padding: '0.85rem 1rem', color: 'var(--text-secondary)' }}>{formatCancunDate(sup.createdAt)}</td>
                 <td style={{ padding: '0.85rem 1rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
                   <button onClick={() => setEditingSupervisor(sup)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem', marginRight: '0.5rem' }}>Editar</button>
                   <button onClick={() => handleDelete(sup.id)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem', color: 'var(--error)', borderColor: 'var(--error)' }}>Eliminar</button>

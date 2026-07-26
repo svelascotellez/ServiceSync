@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import exifr from 'exifr';
 import Link from 'next/link';
+import { formatCancunDate, getCancunTodayKey, formatCancunCalendarDayLabel } from '@/lib/dateUtils';
 
 export default function WorkerClient({ tasks }: { tasks: any[] }) {
   const [attendance, setAttendance] = useState<any>(null);
@@ -297,12 +298,12 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
       )}
 
       {viewMode === 'calendar' && (() => {
-        const todayKey = new Date().toISOString().split('T')[0];
+        const todayKey = getCancunTodayKey();
         const groups: Record<string, { dateObj: Date; isToday: boolean; label: string; tasks: any[] }> = {};
 
-        // Always ensure Today's card exists
+        // Always ensure Today's card exists in Cancún time
         const todayDate = new Date();
-        const todayLabel = `HOY • ${todayDate.toLocaleDateString('es-ES', { weekday: 'long', month: 'short', day: 'numeric' })}`;
+        const todayLabel = formatCancunCalendarDayLabel(todayDate, true);
         groups[todayKey] = {
           dateObj: todayDate,
           isToday: true,
@@ -319,12 +320,10 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
             groups[key].tasks.push(task);
           } else {
             const d = new Date(task.dueDate);
-            const key = d.toISOString().split('T')[0];
+            const key = getCancunTodayKey(d);
             const isToday = key === todayKey;
             if (!groups[key]) {
-              const label = isToday
-                ? `HOY • ${d.toLocaleDateString('es-ES', { weekday: 'long', month: 'short', day: 'numeric' })}`
-                : d.toLocaleDateString('es-ES', { weekday: 'long', month: 'short', day: 'numeric' });
+              const label = formatCancunCalendarDayLabel(d, isToday);
               groups[key] = { dateObj: d, isToday, label, tasks: [] };
             }
             groups[key].tasks.push(task);
@@ -409,7 +408,7 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
                         <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: task.priority === 'Alta' ? 'var(--error)' : 'var(--text-secondary)' }}>{task.priority}</span>
                       </div>
                       <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        📅 {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sin fecha'}
+                        📅 {formatCancunDate(task.dueDate)}
                       </div>
                       <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                         📍 {task.location}

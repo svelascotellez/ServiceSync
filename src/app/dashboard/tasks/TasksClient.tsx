@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { CreateTaskModal } from '@/components/CreateTaskModal';
 import { EditTaskModal } from '@/components/EditTaskModal';
 import { ExcelColumnHeader } from '@/components/ExcelColumnHeader';
+import { formatCancunDate, getCancunTodayKey, formatCancunCalendarDayLabel } from '@/lib/dateUtils';
 import { useRouter } from 'next/navigation';
 
 export default function TasksClient({ tasks, workers }: { tasks: any[], workers: any[] }) {
@@ -322,7 +323,7 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
                 {filteredTasks.map(task => (
                   <tr key={task.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background-color 0.15s ease' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-hover)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                     <td style={{ padding: '0.85rem 1rem', whiteSpace: 'nowrap', fontSize: '0.875rem' }}>
-                      {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sin fecha'}
+                      {formatCancunDate(task.dueDate)}
                     </td>
                     <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>
                       {task.title}
@@ -385,7 +386,7 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
                     </div>
                     {task.recurringGroupId && <span className="badge badge-pending" style={{ fontSize: '0.65rem', marginBottom: '0.5rem', display: 'inline-block' }}>Periódica</span>}
                     <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      📅 {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sin fecha'}
+                      📅 {formatCancunDate(task.dueDate)}
                     </div>
                     <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       👤 {task.assignedTo ? task.assignedTo.name : 'Sin Asignar'}
@@ -415,7 +416,7 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
           {filteredTasks.map(task => (
             <div key={task.id} className="glass-panel" style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontSize: '0.875rem', color: 'var(--primary)', fontWeight: 600, marginBottom: '0.25rem' }}>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sin fecha'}</div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--primary)', fontWeight: 600, marginBottom: '0.25rem' }}>{formatCancunDate(task.dueDate)}</div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{task.title} {task.recurringGroupId && <span className="badge badge-pending" style={{ fontSize: '0.65rem', marginLeft: '0.5rem' }}>Periódica</span>}</h3>
                 <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>📍 {task.location} • 👤 {task.assignedTo?.name || 'Sin Asignar'}</div>
                 {(task.startPhotoUrl || task.endPhotoUrl) && (
@@ -439,12 +440,12 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
       )}
 
       {viewMode === 'calendar' && (() => {
-        const todayKey = new Date().toISOString().split('T')[0];
+        const todayKey = getCancunTodayKey();
         const groups: Record<string, { dateObj: Date; isToday: boolean; label: string; tasks: any[] }> = {};
 
-        // Always ensure Today's card exists
+        // Always ensure Today's card exists in Cancún time
         const todayDate = new Date();
-        const todayLabel = `HOY • ${todayDate.toLocaleDateString('es-ES', { weekday: 'long', month: 'short', day: 'numeric' })}`;
+        const todayLabel = formatCancunCalendarDayLabel(todayDate, true);
         groups[todayKey] = {
           dateObj: todayDate,
           isToday: true,
@@ -461,12 +462,10 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
             groups[key].tasks.push(task);
           } else {
             const d = new Date(task.dueDate);
-            const key = d.toISOString().split('T')[0];
+            const key = getCancunTodayKey(d);
             const isToday = key === todayKey;
             if (!groups[key]) {
-              const label = isToday
-                ? `HOY • ${d.toLocaleDateString('es-ES', { weekday: 'long', month: 'short', day: 'numeric' })}`
-                : d.toLocaleDateString('es-ES', { weekday: 'long', month: 'short', day: 'numeric' });
+              const label = formatCancunCalendarDayLabel(d, isToday);
               groups[key] = { dateObj: d, isToday, label, tasks: [] };
             }
             groups[key].tasks.push(task);

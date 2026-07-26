@@ -1,12 +1,13 @@
 "use client";
 
 import Link from 'next/link';
+import { formatCancunDate, formatCancunTime } from '@/lib/dateUtils';
 
 export default function AttendanceClient({ attendances }: { attendances: any[] }) {
   return (
     <div className="animate-fade-in" style={{ paddingBottom: '2rem' }}>
       <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Historial de Asistencia</h1>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Historial de Asistencia (Cancún)</h1>
       </div>
 
       <div className="glass-panel" style={{ padding: '1.5rem', overflowX: 'auto' }}>
@@ -14,7 +15,7 @@ export default function AttendanceClient({ attendances }: { attendances: any[] }
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px', fontSize: '0.875rem' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left' }}>
-                <th style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>Fecha</th>
+                <th style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>Fecha (Cancún)</th>
                 <th style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>Entrada</th>
                 <th style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>Salida</th>
                 <th style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>Ubicación (Coordenadas)</th>
@@ -24,12 +25,12 @@ export default function AttendanceClient({ attendances }: { attendances: any[] }
             <tbody>
               {attendances.map((att) => (
                 <tr key={att.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '0.75rem' }}>{new Date(att.date).toLocaleDateString()}</td>
+                  <td style={{ padding: '0.75rem' }}>{formatCancunDate(att.date)}</td>
                   <td style={{ padding: '0.75rem' }}>
-                    {att.checkInTime ? new Date(att.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
+                    {att.checkInTime ? formatCancunTime(att.checkInTime) : '-'}
                   </td>
                   <td style={{ padding: '0.75rem' }}>
-                    {att.checkOutTime ? new Date(att.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
+                    {att.checkOutTime ? formatCancunTime(att.checkOutTime) : '-'}
                   </td>
                   <td style={{ padding: '0.75rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
