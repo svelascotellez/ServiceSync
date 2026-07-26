@@ -28,15 +28,21 @@ export default function Login() {
       setError('Credenciales inválidas');
       setLoading(false);
     } else {
-      const session = await getSession();
-      const role = (session?.user as any)?.role;
-      if (role === 'supervisor') {
-        window.location.href = '/supervisor';
-      } else if (role === 'worker') {
-        window.location.href = '/worker';
-      } else if (role === 'resident') {
-        window.location.href = '/resident';
-      } else {
+      try {
+        const res = await fetch('/api/auth/session');
+        const sessionData = await res.json();
+        const role = sessionData?.user?.role;
+        
+        if (role === 'supervisor') {
+          window.location.href = '/supervisor';
+        } else if (role === 'worker') {
+          window.location.href = '/worker';
+        } else if (role === 'resident') {
+          window.location.href = '/resident';
+        } else {
+          window.location.href = '/dashboard';
+        }
+      } catch (err) {
         window.location.href = '/dashboard';
       }
     }

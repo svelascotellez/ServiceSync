@@ -1,8 +1,21 @@
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardOverview() {
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user) {
+    redirect('/login');
+  }
+
+  const role = (session.user as any).role;
+  if (role === 'supervisor') redirect('/supervisor');
+  if (role === 'worker') redirect('/worker');
+  if (role === 'resident') redirect('/resident');
   const activeWorkersCount = await prisma.user.count({ where: { role: 'worker' } });
   const totalResidentsCount = await prisma.user.count({ where: { role: 'resident' } });
 

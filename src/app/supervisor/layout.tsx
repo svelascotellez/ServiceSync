@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
@@ -10,9 +10,22 @@ export default function SupervisorLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
+  const userRole = (session?.user as any)?.role;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      if (userRole === 'worker') {
+        window.location.href = '/worker';
+      } else if (userRole === 'resident') {
+        window.location.href = '/resident';
+      }
+    } else if (status === 'unauthenticated') {
+      window.location.href = '/login';
+    }
+  }, [userRole, status]);
 
   const navLinks = [
     { href: '/supervisor', label: '📊 Resumen' },

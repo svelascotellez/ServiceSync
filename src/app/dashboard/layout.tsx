@@ -1,25 +1,34 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
   const userRole = (session?.user as any)?.role;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  if (userRole === 'supervisor') {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/supervisor';
+  useEffect(() => {
+    if (status === 'authenticated') {
+      if (userRole === 'supervisor') {
+        window.location.href = '/supervisor';
+      } else if (userRole === 'worker') {
+        window.location.href = '/worker';
+      } else if (userRole === 'resident') {
+        window.location.href = '/resident';
+      }
+    } else if (status === 'unauthenticated') {
+      window.location.href = '/login';
     }
-  }
+  }, [userRole, status]);
 
   const navLinks = [
     { href: '/dashboard', label: '📊 Resumen' },
