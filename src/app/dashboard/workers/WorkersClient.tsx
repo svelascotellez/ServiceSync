@@ -6,11 +6,13 @@ import { AddUserModal } from '@/components/AddUserModal';
 import { EditUserModal } from '@/components/EditUserModal';
 import { ExcelColumnHeader } from '@/components/ExcelColumnHeader';
 import { ExportExcelButton } from '@/components/ExportExcelButton';
+import { WorkerDossierModal } from '@/components/WorkerDossierModal';
 import { useRouter } from 'next/navigation';
 
 export default function WorkersClient({ workers }: { workers: any[] }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingWorker, setEditingWorker] = useState<any>(null);
+  const [selectedDossierWorker, setSelectedDossierWorker] = useState<any>(null);
   
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -230,6 +232,7 @@ export default function WorkersClient({ workers }: { workers: any[] }) {
                 <td style={{ padding: '0.85rem 1rem', color: 'var(--text-secondary)' }}>{worker.email}</td>
                 <td style={{ padding: '0.85rem 1rem', color: 'var(--text-secondary)' }}>{worker.phone || 'N/A'}</td>
                 <td style={{ padding: '0.85rem 1rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                  <button onClick={() => setSelectedDossierWorker(worker)} className="btn btn-gold" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem', marginRight: '0.5rem' }}>🗂️ Expediente</button>
                   <button onClick={() => setEditingWorker(worker)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem', marginRight: '0.5rem' }}>Editar</button>
                   <button onClick={() => handleDelete(worker.id)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem', color: 'var(--error)', borderColor: 'var(--error)' }}>Eliminar</button>
                 </td>
@@ -260,6 +263,13 @@ export default function WorkersClient({ workers }: { workers: any[] }) {
         onClose={() => setEditingWorker(null)}
         onSuccess={() => router.refresh()}
       />
+
+      {selectedDossierWorker && (
+        <WorkerDossierModal 
+          worker={selectedDossierWorker} 
+          onClose={() => setSelectedDossierWorker(null)} 
+        />
+      )}
     </div>
   );
 }

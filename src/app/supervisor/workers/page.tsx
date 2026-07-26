@@ -7,13 +7,15 @@ export default async function SupervisorWorkersPage() {
   const workers = await prisma.user.findMany({
     where: { role: 'worker' },
     orderBy: { name: 'asc' },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      workerType: true,
-      photoUrl: true,
+    include: {
+      assignedTasks: {
+        orderBy: { dueDate: 'desc' },
+        take: 20
+      },
+      attendances: {
+        orderBy: { date: 'desc' },
+        take: 20
+      }
     }
   });
 

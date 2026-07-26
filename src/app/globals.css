@@ -339,3 +339,24 @@ button {
     font-size: 0.8rem !important;
   }
 }
+
+/* Print Styles for Worker Dossier Card */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable-dossier, .printable-dossier * {
+    visibility: visible;
+  }
+  .printable-dossier {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+}
