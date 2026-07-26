@@ -141,9 +141,12 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
   const isCheckedIn = attendance && !attendance.checkOutTime;
   const isCheckedOut = attendance && attendance.checkOutTime;
 
-  // Let's make the date dynamic in Spanish instead of hardcoded
-  const todayDateStr = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const capitalizedDateStr = todayDateStr.charAt(0).toUpperCase() + todayDateStr.slice(1);
+  const [capitalizedDateStr, setCapitalizedDateStr] = useState<string>('');
+
+  useEffect(() => {
+    const todayStr = new Date().toLocaleDateString('es-MX', { timeZone: 'America/Cancun', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    setCapitalizedDateStr(todayStr.charAt(0).toUpperCase() + todayStr.slice(1));
+  }, []);
 
   return (
     <div className="animate-fade-in">
