@@ -236,6 +236,7 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
             <option value="in-progress">En Progreso</option>
             <option value="completed">Por Revisar</option>
             <option value="approved">Aprobadas</option>
+            <option value="cancelled">Canceladas</option>
           </select>
         </div>
 
@@ -371,7 +372,7 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
                           </strong>
                           <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>📍 {task.location}</span>
                         </div>
-                        <span style={{ width: '12px', height: '12px', borderRadius: '50%', flexShrink: 0, backgroundColor: task.status === 'approved' ? 'var(--success)' : task.status === 'completed' ? '#3B82F6' : task.status === 'in-progress' ? 'var(--warning)' : 'var(--error)' }} title={task.status}></span>
+                        <span style={{ width: '12px', height: '12px', borderRadius: '50%', flexShrink: 0, backgroundColor: task.status === 'cancelled' ? 'var(--error)' : task.status === 'approved' ? 'var(--success)' : task.status === 'completed' ? '#3B82F6' : task.status === 'in-progress' ? 'var(--warning)' : 'var(--text-secondary)' }} title={task.status}></span>
                       </div>
                     </Link>
                   ))}
@@ -393,13 +394,14 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
             { id: 'in-progress', title: 'En Progreso' },
             { id: 'completed', title: 'Por Revisar' },
             { id: 'approved', title: 'Aprobadas' },
+            { id: 'cancelled', title: 'Canceladas' },
           ].map(col => (
             <div key={col.id} className="glass-panel" style={{ padding: '1.5rem', minHeight: '500px', backgroundColor: 'var(--surface)', flex: '0 0 320px' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem', borderBottom: '2px solid var(--border)', paddingBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
-                {col.title} <span className="badge badge-pending">{tasks.filter(t => t.status === col.id).length}</span>
+                {col.title} <span className="badge badge-pending">{filteredTasks.filter(t => t.status === col.id).length}</span>
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {tasks.filter(t => t.status === col.id).map(task => (
+                {filteredTasks.filter(t => t.status === col.id).map(task => (
                   <Link href={`/worker/tasks/${task.id}`} key={task.id} style={{ textDecoration: 'none' }}>
                     <div style={{ backgroundColor: 'var(--background)', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', cursor: 'pointer', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>

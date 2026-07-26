@@ -132,6 +132,7 @@ export function EditTaskModal({ workers, isOpen, onClose, onSuccess, initialData
               <option value="in-progress">En Progreso</option>
               <option value="completed">Completada (Por Revisar)</option>
               <option value="approved">Aprobada</option>
+              <option value="cancelled">Cancelada</option>
             </select>
           </div>
 
