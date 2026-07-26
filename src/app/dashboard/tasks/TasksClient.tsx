@@ -221,62 +221,167 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
         )}
       </div>
 
-      {viewMode === 'table' && (
-        <div className="glass-panel animate-fade-in" style={{ padding: '2rem', overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
-                <th style={{ padding: '1rem' }}>Fecha</th>
-                <th style={{ padding: '1rem' }}>Título</th>
-                <th style={{ padding: '1rem' }}>Ubicación</th>
-                <th style={{ padding: '1rem' }}>Trabajador Asignado</th>
-                <th style={{ padding: '1rem' }}>Prioridad</th>
-                <th style={{ padding: '1rem' }}>Estado</th>
-                <th style={{ padding: '1rem', textAlign: 'right' }}>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTasks.map(task => (
-                <tr key={task.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '1rem', whiteSpace: 'nowrap' }}>
-                    {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sin fecha'}
-                  </td>
-                  <td style={{ padding: '1rem', fontWeight: 500 }}>
-                    {task.title}
-                    {task.recurringGroupId && <span className="badge badge-pending" style={{ marginLeft: '0.5rem', fontSize: '0.65rem' }}>Periódica</span>}
-                    {task.description && <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{task.description}</div>}
-                  </td>
-                  <td style={{ padding: '1rem' }}>{task.location}</td>
-                  <td style={{ padding: '1rem' }}>{task.assignedTo ? task.assignedTo.name : 'Sin Asignar'}</td>
-                  <td style={{ padding: '1rem' }}>
-                    <span style={{ 
-                      color: task.priority === 'Alta' ? 'var(--error)' : task.priority === 'Media' ? 'var(--warning)' : 'var(--success)'
-                    }}>
-                      {task.priority}
-                    </span>
-                  </td>
-                  <td style={{ padding: '1rem' }}>
-                    <span className={`badge ${task.status === 'completed' ? 'badge-completed' : task.status === 'approved' ? 'badge-success' : 'badge-pending'}`}>
-                      {task.status === 'completed' ? 'Por Revisar' : task.status === 'approved' ? 'Aprobada' : task.status === 'in-progress' ? 'En Progreso' : 'Pendiente'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>
-                    <button onClick={() => setEditingTask(task)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', marginRight: '0.5rem' }}>Editar</button>
-                    <button onClick={() => handleDelete(task.id, !!task.recurringGroupId)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', color: 'var(--error)', borderColor: 'var(--error)' }}>Eliminar</button>
-                  </td>
+      {viewMode === 'table' && (() => {
+        const isColumnFiltered = (colKey: string) => {
+          if (colKey === 'dueDate') return !!searchQuery || (sortBy === 'dueDate');
+          if (colKey === 'worker') return selectedWorkerId !== 'all';
+          if (colKey === 'status') return statusFilter !== 'all';
+          if (colKey === 'priority') return priorityFilter !== 'all';
+          return false;
+        };
+
+        const handleHeaderClick = (colKey: 'dueDate' | 'priority' | 'title' | 'createdAt') => {
+          if (sortBy === colKey) {
+            setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+          } else {
+            setSortBy(colKey);
+            setSortOrder('asc');
+          }
+        };
+
+        return (
+          <div className="glass-panel animate-fade-in" style={{ padding: '1.5rem', overflowX: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border)', fontSize: '0.875rem' }}>
+              <span style={{ fontWeight: 600, color: 'var(--primary)' }}>
+                📊 Tabla Tipo Excel • Mostrando {filteredTasks.length} de {tasks.length} tareas
+              </span>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                💡 Haz clic en los encabezados para ordenar o usa el botón 🔻 para filtrar por columna.
+              </span>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid var(--border)', backgroundColor: 'var(--surface-hover)', userSelect: 'none' }}>
+                  {/* Fecha Column */}
+                  <th style={{ padding: '0.85rem 1rem', cursor: 'pointer' }} onClick={() => handleHeaderClick('dueDate')}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                      <span style={{ fontWeight: 700 }}>Fecha {sortBy === 'dueDate' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
+                      <span style={{ fontSize: '0.75rem', opacity: sortBy === 'dueDate' ? 1 : 0.4 }}>🔻</span>
+                    </div>
+                  </th>
+
+                  {/* Título Column */}
+                  <th style={{ padding: '0.85rem 1rem', cursor: 'pointer' }} onClick={() => handleHeaderClick('title')}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                      <span style={{ fontWeight: 700 }}>Título {sortBy === 'title' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
+                      <span style={{ fontSize: '0.75rem', opacity: sortBy === 'title' ? 1 : 0.4 }}>🔻</span>
+                    </div>
+                  </th>
+
+                  {/* Ubicación Column */}
+                  <th style={{ padding: '0.85rem 1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                      <span style={{ fontWeight: 700 }}>Ubicación</span>
+                    </div>
+                  </th>
+
+                  {/* Trabajador Asignado Column Header with Excel Filter */}
+                  <th style={{ padding: '0.85rem 1rem', backgroundColor: selectedWorkerId !== 'all' ? 'var(--gold-light)' : 'transparent' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                      <span style={{ fontWeight: 700 }}>Trabajador</span>
+                      <select 
+                        onClick={(e) => e.stopPropagation()}
+                        value={selectedWorkerId}
+                        onChange={(e) => setSelectedWorkerId(e.target.value)}
+                        style={{ border: 'none', background: 'transparent', fontSize: '0.8rem', fontWeight: 'bold', color: selectedWorkerId !== 'all' ? '#8C6826' : 'var(--text-secondary)', cursor: 'pointer' }}
+                        title="Filtrar por trabajador"
+                      >
+                        <option value="all">🔻 (Todos)</option>
+                        <option value="unassigned">Sin Asignar</option>
+                        {workers.map(w => (
+                          <option key={w.id} value={w.id}>{w.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </th>
+
+                  {/* Prioridad Column Header with Excel Filter */}
+                  <th style={{ padding: '0.85rem 1rem', cursor: 'pointer', backgroundColor: priorityFilter !== 'all' ? 'var(--gold-light)' : 'transparent' }} onClick={() => handleHeaderClick('priority')}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                      <span style={{ fontWeight: 700 }}>Prioridad {sortBy === 'priority' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
+                      <select 
+                        onClick={(e) => e.stopPropagation()}
+                        value={priorityFilter}
+                        onChange={(e) => setPriorityFilter(e.target.value)}
+                        style={{ border: 'none', background: 'transparent', fontSize: '0.8rem', fontWeight: 'bold', color: priorityFilter !== 'all' ? '#8C6826' : 'var(--text-secondary)', cursor: 'pointer' }}
+                        title="Filtrar por prioridad"
+                      >
+                        <option value="all">🔻 (Todas)</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Media">Media</option>
+                        <option value="Baja">Baja</option>
+                      </select>
+                    </div>
+                  </th>
+
+                  {/* Estado Column Header with Excel Filter */}
+                  <th style={{ padding: '0.85rem 1rem', backgroundColor: statusFilter !== 'all' ? 'var(--gold-light)' : 'transparent' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                      <span style={{ fontWeight: 700 }}>Estado</span>
+                      <select 
+                        onClick={(e) => e.stopPropagation()}
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        style={{ border: 'none', background: 'transparent', fontSize: '0.8rem', fontWeight: 'bold', color: statusFilter !== 'all' ? '#8C6826' : 'var(--text-secondary)', cursor: 'pointer' }}
+                        title="Filtrar por estado"
+                      >
+                        <option value="all">🔻 (Todos)</option>
+                        <option value="pending">Pendientes</option>
+                        <option value="in-progress">En Progreso</option>
+                        <option value="completed">Por Revisar</option>
+                        <option value="approved">Aprobadas</option>
+                      </select>
+                    </div>
+                  </th>
+
+                  <th style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>Acciones</th>
                 </tr>
-              ))}
-              {filteredTasks.length === 0 && (
-                <tr>
-                  <td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                    No hay tareas para el filtro seleccionado.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {filteredTasks.map(task => (
+                  <tr key={task.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background-color 0.15s ease' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-hover)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                    <td style={{ padding: '0.85rem 1rem', whiteSpace: 'nowrap', fontSize: '0.875rem' }}>
+                      {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sin fecha'}
+                    </td>
+                    <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>
+                      {task.title}
+                      {task.recurringGroupId && <span className="badge badge-pending" style={{ marginLeft: '0.5rem', fontSize: '0.65rem' }}>Periódica</span>}
+                      {task.description && <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 400 }}>{task.description}</div>}
+                    </td>
+                    <td style={{ padding: '0.85rem 1rem', fontSize: '0.875rem' }}>{task.location}</td>
+                    <td style={{ padding: '0.85rem 1rem', fontSize: '0.875rem' }}>{task.assignedTo ? task.assignedTo.name : 'Sin Asignar'}</td>
+                    <td style={{ padding: '0.85rem 1rem' }}>
+                      <span style={{ 
+                        fontWeight: 700,
+                        color: task.priority === 'Alta' ? 'var(--error)' : task.priority === 'Media' ? 'var(--warning)' : 'var(--success)'
+                      }}>
+                        {task.priority}
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.85rem 1rem' }}>
+                      <span className={`badge ${task.status === 'completed' ? 'badge-completed' : task.status === 'approved' ? 'badge-success' : 'badge-pending'}`}>
+                        {task.status === 'completed' ? 'Por Revisar' : task.status === 'approved' ? 'Aprobada' : task.status === 'in-progress' ? 'En Progreso' : 'Pendiente'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.85rem 1rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <button onClick={() => setEditingTask(task)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem', marginRight: '0.5rem' }}>Editar</button>
+                      <button onClick={() => handleDelete(task.id, !!task.recurringGroupId)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem', color: 'var(--error)', borderColor: 'var(--error)' }}>Eliminar</button>
+                    </td>
+                  </tr>
+                ))}
+                {filteredTasks.length === 0 && (
+                  <tr>
+                    <td colSpan={7} style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                      No se encontraron tareas con los filtros de columna aplicados.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      })()}
 
       {viewMode === 'kanban' && (
         <div className="animate-fade-in" style={{ display: 'flex', gap: '1.5rem', overflowX: 'auto', paddingBottom: '1rem' }}>
