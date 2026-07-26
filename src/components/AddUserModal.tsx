@@ -11,6 +11,7 @@ interface AddUserModalProps {
 }
 
 export function AddUserModal({ role, isOpen, onClose, onSuccess }: AddUserModalProps) {
+  const [selectedRole, setSelectedRole] = useState<'worker' | 'resident' | 'admin' | 'supervisor'>(role);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -28,6 +29,7 @@ export function AddUserModal({ role, isOpen, onClose, onSuccess }: AddUserModalP
 
   useEffect(() => {
     setMounted(true);
+    setSelectedRole(role);
     if (role === 'worker') {
       fetch('/api/worker-types')
         .then(res => res.json())
@@ -36,7 +38,7 @@ export function AddUserModal({ role, isOpen, onClose, onSuccess }: AddUserModalP
         })
         .catch(console.error);
     }
-  }, [role]);
+  }, [role, isOpen]);
 
   if (!isOpen || !mounted) return null;
 
@@ -51,7 +53,7 @@ export function AddUserModal({ role, isOpen, onClose, onSuccess }: AddUserModalP
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          role,
+          role: selectedRole,
         }),
       });
 
@@ -137,6 +139,16 @@ export function AddUserModal({ role, isOpen, onClose, onSuccess }: AddUserModalP
                 {workerTypes.map(wt => (
                   <option key={wt.id} value={wt.name}>{wt.name}</option>
                 ))}
+              </select>
+            </div>
+          )}
+
+          {(role === 'admin' || role === 'supervisor') && (
+            <div className="input-group">
+              <label className="input-label">Rol de Usuario</label>
+              <select className="input-field" value={selectedRole} onChange={(e) => setSelectedRole(e.target.value as any)}>
+                <option value="admin">Administrador</option>
+                <option value="supervisor">Supervisor</option>
               </select>
             </div>
           )}
