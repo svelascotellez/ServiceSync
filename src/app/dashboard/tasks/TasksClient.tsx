@@ -9,14 +9,67 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'kanban' | 'calendar' | 'timeline' | 'table'>('kanban');
+  
+  // Filter States
   const [selectedWorkerId, setSelectedWorkerId] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  
+  // Sort States
+  const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'title' | 'createdAt'>('dueDate');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  
   const router = useRouter();
 
-  const filteredTasks = tasks.filter(task => {
-    if (selectedWorkerId === 'all') return true;
-    if (selectedWorkerId === 'unassigned') return !task.assignedTo;
-    return task.assignedTo?.id === selectedWorkerId;
-  });
+  const priorityWeight: Record<string, number> = { 'Alta': 3, 'Media': 2, 'Baja': 1 };
+
+  const filteredTasks = tasks
+    .filter(task => {
+      // Worker filter
+      if (selectedWorkerId === 'unassigned') {
+        if (task.assignedTo) return false;
+      } else if (selectedWorkerId !== 'all' && task.assignedTo?.id !== selectedWorkerId) {
+        return false;
+      }
+
+      // Status filter
+      if (statusFilter !== 'all' && task.status !== statusFilter) return false;
+
+      // Priority filter
+      if (priorityFilter !== 'all' && task.priority !== priorityFilter) return false;
+
+      // Search query filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const titleMatch = task.title?.toLowerCase().includes(q);
+        const locMatch = task.location?.toLowerCase().includes(q);
+        const workerMatch = task.assignedTo?.name?.toLowerCase().includes(q);
+        if (!titleMatch && !locMatch && !workerMatch) return false;
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      let result = 0;
+      if (sortBy === 'dueDate') {
+        const timeA = a.dueDate ? new Date(a.dueDate).getTime() : 0;
+        const timeB = b.dueDate ? new Date(b.dueDate).getTime() : 0;
+        result = timeA - timeB;
+      } else if (sortBy === 'priority') {
+        const wA = priorityWeight[a.priority] || 0;
+        const wB = priorityWeight[b.priority] || 0;
+        result = wB - wA;
+      } else if (sortBy === 'title') {
+        result = a.title.localeCompare(b.title);
+      } else if (sortBy === 'createdAt') {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        result = timeB - timeA;
+      }
+
+      return sortOrder === 'asc' ? result : -result;
+    });
 
   const handleDelete = async (id: string, isRecurring: boolean) => {
     let url = `/api/tasks/${id}`;
@@ -44,38 +97,128 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>Gestión de Tareas</h1>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Supervisa y asigna tareas al personal.</p>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Supervisa, filtra y asigna tareas al personal.</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* Worker Filter Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <select 
-              className="input-field" 
-              style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', minWidth: '200px' }}
-              value={selectedWorkerId}
-              onChange={(e) => setSelectedWorkerId(e.target.value)}
-            >
-              <option value="all">👷 Todos los Trabajadores</option>
-              <option value="unassigned">❓ Sin Asignar</option>
-              {workers.map(w => (
-                <option key={w.id} value={w.id}>
-                  👤 {w.name} ({w.workerType || 'General'})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div style={{ display: 'flex', backgroundColor: 'var(--background)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', backgroundColor: 'var(--surface)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
             <button onClick={() => setViewMode('kanban')} className={`btn ${viewMode === 'kanban' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Tablero</button>
             <button onClick={() => setViewMode('calendar')} className={`btn ${viewMode === 'calendar' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Calendario</button>
             <button onClick={() => setViewMode('timeline')} className={`btn ${viewMode === 'timeline' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Tarjetas</button>
             <button onClick={() => setViewMode('table')} className={`btn ${viewMode === 'table' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Lista</button>
           </div>
-          <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>+ Crear Tarea</button>
+          <button className="btn btn-gold" onClick={() => setIsModalOpen(true)}>+ Crear Tarea</button>
         </div>
+      </div>
+
+      {/* Filter and Sorting Control Bar */}
+      <div className="glass-panel" style={{ padding: '1.25rem', marginBottom: '2rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', backgroundColor: 'var(--surface)' }}>
+        {/* Search Input */}
+        <div style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '1.1rem' }}>🔍</span>
+          <input 
+            type="text"
+            className="input-field"
+            placeholder="Buscar por título, ubicación o trabajador..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ width: '100%', padding: '0.5rem 0.85rem', fontSize: '0.875rem' }}
+          />
+        </div>
+
+        {/* Worker Filter */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Trabajador:</span>
+          <select 
+            className="input-field" 
+            style={{ padding: '0.5rem 0.75rem', fontSize: '0.875rem' }}
+            value={selectedWorkerId}
+            onChange={(e) => setSelectedWorkerId(e.target.value)}
+          >
+            <option value="all">Todos</option>
+            <option value="unassigned">Sin Asignar</option>
+            {workers.map(w => (
+              <option key={w.id} value={w.id}>{w.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Status Filter */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Estado:</span>
+          <select 
+            className="input-field" 
+            style={{ padding: '0.5rem 0.75rem', fontSize: '0.875rem' }}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">Todos</option>
+            <option value="pending">Pendientes</option>
+            <option value="in-progress">En Progreso</option>
+            <option value="completed">Por Revisar</option>
+            <option value="approved">Aprobadas</option>
+          </select>
+        </div>
+
+        {/* Priority Filter */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Prioridad:</span>
+          <select 
+            className="input-field" 
+            style={{ padding: '0.5rem 0.75rem', fontSize: '0.875rem' }}
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+          >
+            <option value="all">Todas</option>
+            <option value="Alta">Alta</option>
+            <option value="Media">Media</option>
+            <option value="Baja">Baja</option>
+          </select>
+        </div>
+
+        {/* Sort By */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Ordenar por:</span>
+          <select 
+            className="input-field" 
+            style={{ padding: '0.5rem 0.75rem', fontSize: '0.875rem' }}
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+          >
+            <option value="dueDate">Fecha Límite</option>
+            <option value="priority">Prioridad</option>
+            <option value="title">Título</option>
+            <option value="createdAt">Creación</option>
+          </select>
+          <button 
+            className="btn btn-outline" 
+            onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+            style={{ padding: '0.45rem 0.75rem', fontSize: '0.875rem' }}
+            title="Cambiar dirección de orden"
+          >
+            {sortOrder === 'asc' ? '⬆️ Asc' : '⬇️ Desc'}
+          </button>
+        </div>
+
+        {/* Reset Filters button */}
+        {(selectedWorkerId !== 'all' || statusFilter !== 'all' || priorityFilter !== 'all' || searchQuery || sortBy !== 'dueDate' || sortOrder !== 'asc') && (
+          <button 
+            className="btn btn-outline"
+            onClick={() => {
+              setSelectedWorkerId('all');
+              setStatusFilter('all');
+              setPriorityFilter('all');
+              setSearchQuery('');
+              setSortBy('dueDate');
+              setSortOrder('asc');
+            }}
+            style={{ padding: '0.45rem 0.75rem', fontSize: '0.8rem', color: 'var(--error)', borderColor: 'var(--error)' }}
+          >
+            ✕ Limpiar Filtros
+          </button>
+        )}
       </div>
 
       {viewMode === 'table' && (

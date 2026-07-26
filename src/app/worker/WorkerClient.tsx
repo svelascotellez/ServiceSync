@@ -10,6 +10,38 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
   const [actionLoading, setActionLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'calendar' | 'kanban'>('kanban');
 
+  // Filter & Sort States
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'title'>('dueDate');
+
+  const priorityWeight: Record<string, number> = { 'Alta': 3, 'Media': 2, 'Baja': 1 };
+
+  const filteredTasks = tasks
+    .filter(task => {
+      if (statusFilter !== 'all' && task.status !== statusFilter) return false;
+      if (priorityFilter !== 'all' && task.priority !== priorityFilter) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const titleMatch = task.title?.toLowerCase().includes(q);
+        const locMatch = task.location?.toLowerCase().includes(q);
+        if (!titleMatch && !locMatch) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'dueDate') {
+        const timeA = a.dueDate ? new Date(a.dueDate).getTime() : 0;
+        const timeB = b.dueDate ? new Date(b.dueDate).getTime() : 0;
+        return timeA - timeB;
+      } else if (sortBy === 'priority') {
+        return (priorityWeight[b.priority] || 0) - (priorityWeight[a.priority] || 0);
+      } else {
+        return a.title.localeCompare(b.title);
+      }
+    });
+
   useEffect(() => {
     fetch('/api/attendance')
       .then(res => res.json())
@@ -169,24 +201,84 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
       </div>
 
       <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Mis Tareas ({tasks.length})</h2>
-        <div style={{ display: 'flex', backgroundColor: 'var(--background)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Mis Tareas ({filteredTasks.length})</h2>
+        <div style={{ display: 'flex', backgroundColor: 'var(--surface)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
           <button onClick={() => setViewMode('list')} className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Lista</button>
           <button onClick={() => setViewMode('calendar')} className={`btn ${viewMode === 'calendar' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Calendario</button>
           <button onClick={() => setViewMode('kanban')} className={`btn ${viewMode === 'kanban' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Tablero</button>
         </div>
       </div>
 
+      {/* Worker Tasks Filter & Sort Toolbar */}
+      <div className="glass-panel" style={{ padding: '1rem', marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center', backgroundColor: 'var(--surface)' }}>
+        <div style={{ flex: '1 1 180px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span>🔍</span>
+          <input 
+            type="text"
+            className="input-field"
+            placeholder="Buscar por título o ubicación..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ width: '100%', padding: '0.45rem 0.75rem', fontSize: '0.85rem' }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Estado:</span>
+          <select 
+            className="input-field" 
+            style={{ padding: '0.45rem 0.6rem', fontSize: '0.85rem' }}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">Todos</option>
+            <option value="pending">Pendientes</option>
+            <option value="in-progress">En Progreso</option>
+            <option value="completed">Por Revisar</option>
+            <option value="approved">Aprobadas</option>
+          </select>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Prioridad:</span>
+          <select 
+            className="input-field" 
+            style={{ padding: '0.45rem 0.6rem', fontSize: '0.85rem' }}
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+          >
+            <option value="all">Todas</option>
+            <option value="Alta">Alta</option>
+            <option value="Media">Media</option>
+            <option value="Baja">Baja</option>
+          </select>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Ordenar:</span>
+          <select 
+            className="input-field" 
+            style={{ padding: '0.45rem 0.6rem', fontSize: '0.85rem' }}
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+          >
+            <option value="dueDate">Fecha Límite</option>
+            <option value="priority">Prioridad</option>
+            <option value="title">Título</option>
+          </select>
+        </div>
+      </div>
+
       {viewMode === 'list' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {tasks.map(task => (
+          {filteredTasks.map(task => (
             <Link href={`/worker/tasks/${task.id}`} key={task.id} style={{ textDecoration: 'none' }}>
               <div className="glass-panel" style={{ padding: '1rem', display: 'flex', alignItems: 'flex-start', gap: '1rem', borderLeft: task.status === 'completed' || task.status === 'approved' ? '4px solid var(--success)' : (task.status === 'in-progress' ? '4px solid var(--primary)' : '4px solid var(--warning)') }}>
                 <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${task.status === 'completed' || task.status === 'approved' ? 'var(--success)' : 'var(--text-secondary)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: task.status === 'completed' || task.status === 'approved' ? 'var(--success)' : 'transparent', color: 'white', fontSize: '0.75rem', flexShrink: 0, marginTop: '0.25rem' }}>
                   {(task.status === 'completed' || task.status === 'approved') && '✓'}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <h3 style={{ fontWeight: 600, fontSize: '1rem', textDecoration: task.status === 'completed' || task.status === 'approved' ? 'line-through' : 'none', color: task.status === 'completed' || task.status === 'approved' ? 'var(--text-secondary)' : 'var(--text)' }}>
+                  <h3 style={{ fontWeight: 600, fontSize: '1rem', textDecoration: task.status === 'completed' || task.status === 'approved' ? 'line-through' : 'none', color: task.status === 'completed' || task.status === 'approved' ? 'var(--text-secondary)' : 'var(--text-primary)' }}>
                     {task.title}
                   </h3>
                   <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
@@ -197,8 +289,8 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
               </div>
             </Link>
           ))}
-          {tasks.length === 0 && (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No tienes tareas asignadas.</div>
+          {filteredTasks.length === 0 && (
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No hay tareas que coincidan con los filtros.</div>
           )}
         </div>
       )}
@@ -217,7 +309,7 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
           tasks: []
         };
 
-        tasks.forEach(task => {
+        filteredTasks.forEach(task => {
           if (!task.dueDate) {
             const key = 'sin-fecha';
             if (!groups[key]) {
