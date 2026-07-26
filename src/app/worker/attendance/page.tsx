@@ -23,5 +23,5 @@ export default async function WorkerAttendancePage() {
     take: 30 // Fetch last 30 days
   });
 
-  return <AttendanceClient attendances={attendances} />;
+  return <AttendanceClient attendances={JSON.parse(JSON.stringify(attendances))} />;
 }

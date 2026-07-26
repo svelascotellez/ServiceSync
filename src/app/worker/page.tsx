@@ -22,5 +22,5 @@ export default async function WorkerPage() {
     orderBy: { createdAt: 'desc' }
   });
 
-  return <WorkerClient tasks={tasks} />;
+  return <WorkerClient tasks={JSON.parse(JSON.stringify(tasks))} />;
 }

@@ -21,5 +21,5 @@ export default async function TaskDetailPage(props: { params: Promise<{ id: stri
     redirect('/worker');
   }
 
-  return <TaskDetailClient task={task} />;
+  return <TaskDetailClient task={JSON.parse(JSON.stringify(task))} />;
 }

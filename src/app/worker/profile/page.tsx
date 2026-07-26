@@ -45,5 +45,5 @@ export default async function ProfilePage() {
     joinDate: user.createdAt.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
   };
 
-  return <ProfileClient initialPhotoUrl={user.photoUrl} user={user} stats={stats} />;
+  return <ProfileClient initialPhotoUrl={user.photoUrl} user={JSON.parse(JSON.stringify(user))} stats={stats} />;
 }
