@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { CreateTaskModal } from '@/components/CreateTaskModal';
 import { EditTaskModal } from '@/components/EditTaskModal';
+import { ExcelColumnHeader } from '@/components/ExcelColumnHeader';
 import { useRouter } from 'next/navigation';
 
 export default function TasksClient({ tasks, workers }: { tasks: any[], workers: any[] }) {
@@ -258,7 +259,6 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
                   <th style={{ padding: '0.85rem 1rem', cursor: 'pointer' }} onClick={() => handleHeaderClick('dueDate')}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
                       <span style={{ fontWeight: 700 }}>Fecha {sortBy === 'dueDate' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
-                      <span style={{ fontSize: '0.75rem', opacity: sortBy === 'dueDate' ? 1 : 0.4 }}>🔻</span>
                     </div>
                   </th>
 
@@ -266,75 +266,53 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
                   <th style={{ padding: '0.85rem 1rem', cursor: 'pointer' }} onClick={() => handleHeaderClick('title')}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
                       <span style={{ fontWeight: 700 }}>Título {sortBy === 'title' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
-                      <span style={{ fontSize: '0.75rem', opacity: sortBy === 'title' ? 1 : 0.4 }}>🔻</span>
                     </div>
                   </th>
 
                   {/* Ubicación Column */}
                   <th style={{ padding: '0.85rem 1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                      <span style={{ fontWeight: 700 }}>Ubicación</span>
-                    </div>
+                    <span style={{ fontWeight: 700 }}>Ubicación</span>
                   </th>
 
-                  {/* Trabajador Asignado Column Header with Excel Filter */}
-                  <th style={{ padding: '0.85rem 1rem', backgroundColor: selectedWorkerId !== 'all' ? 'var(--gold-light)' : 'transparent' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                      <span style={{ fontWeight: 700 }}>Trabajador</span>
-                      <select 
-                        onClick={(e) => e.stopPropagation()}
-                        value={selectedWorkerId}
-                        onChange={(e) => setSelectedWorkerId(e.target.value)}
-                        style={{ border: 'none', background: 'transparent', fontSize: '0.8rem', fontWeight: 'bold', color: selectedWorkerId !== 'all' ? '#8C6826' : 'var(--text-secondary)', cursor: 'pointer' }}
-                        title="Filtrar por trabajador"
-                      >
-                        <option value="all">🔻 (Todos)</option>
-                        <option value="unassigned">Sin Asignar</option>
-                        {workers.map(w => (
-                          <option key={w.id} value={w.id}>{w.name}</option>
-                        ))}
-                      </select>
-                    </div>
+                  {/* Trabajador Asignado Column Header with Excel Filter Popup */}
+                  <th style={{ padding: '0.85rem 1rem' }}>
+                    <ExcelColumnHeader 
+                      title="Trabajador"
+                      columnKey="assignedTo"
+                      uniqueValues={['unassigned', ...workers.map(w => w.id)]}
+                      selectedValues={selectedWorkerId === 'all' ? [] : [selectedWorkerId]}
+                      onFilterChange={(sel) => setSelectedWorkerId(sel.length === 1 ? sel[0] : 'all')}
+                      currentSort={null}
+                      onSortChange={() => {}}
+                      displayFormatter={(id) => id === 'unassigned' ? 'Sin Asignar' : workers.find(w => w.id === id)?.name || id}
+                    />
                   </th>
 
-                  {/* Prioridad Column Header with Excel Filter */}
-                  <th style={{ padding: '0.85rem 1rem', cursor: 'pointer', backgroundColor: priorityFilter !== 'all' ? 'var(--gold-light)' : 'transparent' }} onClick={() => handleHeaderClick('priority')}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                      <span style={{ fontWeight: 700 }}>Prioridad {sortBy === 'priority' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
-                      <select 
-                        onClick={(e) => e.stopPropagation()}
-                        value={priorityFilter}
-                        onChange={(e) => setPriorityFilter(e.target.value)}
-                        style={{ border: 'none', background: 'transparent', fontSize: '0.8rem', fontWeight: 'bold', color: priorityFilter !== 'all' ? '#8C6826' : 'var(--text-secondary)', cursor: 'pointer' }}
-                        title="Filtrar por prioridad"
-                      >
-                        <option value="all">🔻 (Todas)</option>
-                        <option value="Alta">Alta</option>
-                        <option value="Media">Media</option>
-                        <option value="Baja">Baja</option>
-                      </select>
-                    </div>
+                  {/* Prioridad Column Header with Excel Filter Popup */}
+                  <th style={{ padding: '0.85rem 1rem' }}>
+                    <ExcelColumnHeader 
+                      title="Prioridad"
+                      columnKey="priority"
+                      uniqueValues={['Alta', 'Media', 'Baja']}
+                      selectedValues={priorityFilter === 'all' ? [] : [priorityFilter]}
+                      onFilterChange={(sel) => setPriorityFilter(sel.length === 1 ? sel[0] : 'all')}
+                      currentSort={{ column: sortBy, order: sortOrder }}
+                      onSortChange={(col, order) => { setSortBy(col as any); setSortOrder(order); }}
+                    />
                   </th>
 
-                  {/* Estado Column Header with Excel Filter */}
-                  <th style={{ padding: '0.85rem 1rem', backgroundColor: statusFilter !== 'all' ? 'var(--gold-light)' : 'transparent' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                      <span style={{ fontWeight: 700 }}>Estado</span>
-                      <select 
-                        onClick={(e) => e.stopPropagation()}
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        style={{ border: 'none', background: 'transparent', fontSize: '0.8rem', fontWeight: 'bold', color: statusFilter !== 'all' ? '#8C6826' : 'var(--text-secondary)', cursor: 'pointer' }}
-                        title="Filtrar por estado"
-                      >
-                        <option value="all">🔻 (Todos)</option>
-                        <option value="pending">Pendientes</option>
-                        <option value="in-progress">En Progreso</option>
-                        <option value="completed">Por Revisar</option>
-                        <option value="approved">Aprobadas</option>
-                        <option value="cancelled">Canceladas</option>
-                      </select>
-                    </div>
+                  {/* Estado Column Header with Excel Filter Popup */}
+                  <th style={{ padding: '0.85rem 1rem' }}>
+                    <ExcelColumnHeader 
+                      title="Estado"
+                      columnKey="status"
+                      uniqueValues={['pending', 'in-progress', 'completed', 'approved', 'cancelled']}
+                      selectedValues={statusFilter === 'all' ? [] : [statusFilter]}
+                      onFilterChange={(sel) => setStatusFilter(sel.length === 1 ? sel[0] : 'all')}
+                      currentSort={null}
+                      onSortChange={() => {}}
+                      displayFormatter={(s) => s === 'cancelled' ? 'Cancelada' : s === 'completed' ? 'Por Revisar' : s === 'approved' ? 'Aprobada' : s === 'in-progress' ? 'En Progreso' : 'Pendiente'}
+                    />
                   </th>
 
                   <th style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>Acciones</th>

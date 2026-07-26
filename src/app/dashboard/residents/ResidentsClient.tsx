@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ExcelUpload } from '@/components/ExcelUpload';
 import { AddUserModal } from '@/components/AddUserModal';
 import { EditUserModal } from '@/components/EditUserModal';
+import { ExcelColumnHeader } from '@/components/ExcelColumnHeader';
 import { useRouter } from 'next/navigation';
 
 export default function ResidentsClient({ residents }: { residents: any[] }) {
@@ -121,25 +122,40 @@ export default function ResidentsClient({ residents }: { residents: any[] }) {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ borderBottom: '2px solid var(--border)', backgroundColor: 'var(--surface-hover)', userSelect: 'none' }}>
-              <th style={{ padding: '0.85rem 1rem', cursor: 'pointer' }} onClick={() => handleSort('name')}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 700 }}>Nombre del Residente {sortColumn === 'name' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
-                  <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>🔻</span>
-                </div>
+              <th style={{ padding: '0.85rem 1rem' }}>
+                <ExcelColumnHeader 
+                  title="Nombre del Residente"
+                  columnKey="name"
+                  uniqueValues={Array.from(new Set(residents.map(r => r.name))).filter(Boolean)}
+                  selectedValues={[]}
+                  onFilterChange={() => {}}
+                  currentSort={{ column: sortColumn, order: sortOrder }}
+                  onSortChange={(col, order) => { setSortColumn(col); setSortOrder(order); }}
+                />
               </th>
 
-              <th style={{ padding: '0.85rem 1rem', cursor: 'pointer' }} onClick={() => handleSort('apartment')}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 700 }}>Unidad / Apartamento {sortColumn === 'apartment' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
-                  <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>🔻</span>
-                </div>
+              <th style={{ padding: '0.85rem 1rem' }}>
+                <ExcelColumnHeader 
+                  title="Unidad / Apartamento"
+                  columnKey="apartment"
+                  uniqueValues={Array.from(new Set(residents.map(r => r.apartment || 'N/A'))).filter(Boolean)}
+                  selectedValues={[]}
+                  onFilterChange={() => {}}
+                  currentSort={{ column: sortColumn, order: sortOrder }}
+                  onSortChange={(col, order) => { setSortColumn(col); setSortOrder(order); }}
+                />
               </th>
 
-              <th style={{ padding: '0.85rem 1rem', cursor: 'pointer' }} onClick={() => handleSort('email')}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 700 }}>Correo Electrónico {sortColumn === 'email' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
-                  <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>🔻</span>
-                </div>
+              <th style={{ padding: '0.85rem 1rem' }}>
+                <ExcelColumnHeader 
+                  title="Correo Electrónico"
+                  columnKey="email"
+                  uniqueValues={Array.from(new Set(residents.map(r => r.email))).filter(Boolean)}
+                  selectedValues={[]}
+                  onFilterChange={() => {}}
+                  currentSort={{ column: sortColumn, order: sortOrder }}
+                  onSortChange={(col, order) => { setSortColumn(col); setSortOrder(order); }}
+                />
               </th>
 
               <th style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>Acciones</th>

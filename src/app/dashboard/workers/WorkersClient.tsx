@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ExcelUpload } from '@/components/ExcelUpload';
 import { AddUserModal } from '@/components/AddUserModal';
 import { EditUserModal } from '@/components/EditUserModal';
+import { ExcelColumnHeader } from '@/components/ExcelColumnHeader';
 import { useRouter } from 'next/navigation';
 
 export default function WorkersClient({ workers }: { workers: any[] }) {
@@ -145,45 +146,53 @@ export default function WorkersClient({ workers }: { workers: any[] }) {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ borderBottom: '2px solid var(--border)', backgroundColor: 'var(--surface-hover)', userSelect: 'none' }}>
-              <th style={{ padding: '0.85rem 1rem', cursor: 'pointer' }} onClick={() => handleSort('name')}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 700 }}>Trabajador {sortColumn === 'name' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
-                  <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>🔻</span>
-                </div>
+              <th style={{ padding: '0.85rem 1rem' }}>
+                <ExcelColumnHeader 
+                  title="Trabajador"
+                  columnKey="name"
+                  uniqueValues={Array.from(new Set(workers.map(w => w.name))).filter(Boolean)}
+                  selectedValues={[]}
+                  onFilterChange={() => {}}
+                  currentSort={{ column: sortColumn, order: sortOrder }}
+                  onSortChange={(col, order) => { setSortColumn(col); setSortOrder(order); }}
+                />
               </th>
 
-              {/* Tipo Column Header with Excel Filter */}
-              <th style={{ padding: '0.85rem 1rem', backgroundColor: typeFilter !== 'all' ? 'var(--gold-light)' : 'transparent' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                  <span style={{ fontWeight: 700, cursor: 'pointer' }} onClick={() => handleSort('type')}>
-                    Tipo {sortColumn === 'type' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}
-                  </span>
-                  <select 
-                    value={typeFilter}
-                    onChange={(e) => setTypeFilter(e.target.value)}
-                    style={{ border: 'none', background: 'transparent', fontSize: '0.8rem', fontWeight: 'bold', color: typeFilter !== 'all' ? '#8C6826' : 'var(--text-secondary)', cursor: 'pointer' }}
-                    title="Filtrar por tipo de trabajador"
-                  >
-                    <option value="all">🔻 (Todos)</option>
-                    {uniqueWorkerTypes.map(t => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
-                </div>
+              {/* Tipo Column Header with Excel Filter Popup */}
+              <th style={{ padding: '0.85rem 1rem' }}>
+                <ExcelColumnHeader 
+                  title="Tipo"
+                  columnKey="type"
+                  uniqueValues={uniqueWorkerTypes}
+                  selectedValues={typeFilter === 'all' ? [] : [typeFilter]}
+                  onFilterChange={(sel) => setTypeFilter(sel.length === 1 ? sel[0] : 'all')}
+                  currentSort={{ column: sortColumn, order: sortOrder }}
+                  onSortChange={(col, order) => { setSortColumn(col); setSortOrder(order); }}
+                />
               </th>
 
-              <th style={{ padding: '0.85rem 1rem', cursor: 'pointer' }} onClick={() => handleSort('email')}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 700 }}>Correo Electrónico {sortColumn === 'email' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
-                  <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>🔻</span>
-                </div>
+              <th style={{ padding: '0.85rem 1rem' }}>
+                <ExcelColumnHeader 
+                  title="Correo Electrónico"
+                  columnKey="email"
+                  uniqueValues={Array.from(new Set(workers.map(w => w.email))).filter(Boolean)}
+                  selectedValues={[]}
+                  onFilterChange={() => {}}
+                  currentSort={{ column: sortColumn, order: sortOrder }}
+                  onSortChange={(col, order) => { setSortColumn(col); setSortOrder(order); }}
+                />
               </th>
 
-              <th style={{ padding: '0.85rem 1rem', cursor: 'pointer' }} onClick={() => handleSort('phone')}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 700 }}>Teléfono {sortColumn === 'phone' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
-                  <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>🔻</span>
-                </div>
+              <th style={{ padding: '0.85rem 1rem' }}>
+                <ExcelColumnHeader 
+                  title="Teléfono"
+                  columnKey="phone"
+                  uniqueValues={Array.from(new Set(workers.map(w => w.phone || 'N/A'))).filter(Boolean)}
+                  selectedValues={[]}
+                  onFilterChange={() => {}}
+                  currentSort={{ column: sortColumn, order: sortOrder }}
+                  onSortChange={(col, order) => { setSortColumn(col); setSortOrder(order); }}
+                />
               </th>
 
               <th style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>Acciones</th>
