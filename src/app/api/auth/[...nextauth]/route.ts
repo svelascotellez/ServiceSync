@@ -60,7 +60,8 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/login',
-  }
+  },
+  secret: process.env.NEXTAUTH_SECRET || "puerto-aventuras-servicesync-secret-key-2026",
 };
 
 const handler = NextAuth(authOptions);
