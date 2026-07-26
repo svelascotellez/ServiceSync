@@ -17,18 +17,28 @@ export default function DashboardLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (status === 'authenticated' && userRole) {
       if (userRole === 'supervisor') {
-        window.location.href = '/supervisor';
+        router.replace('/supervisor');
       } else if (userRole === 'worker') {
-        window.location.href = '/worker';
+        router.replace('/worker');
       } else if (userRole === 'resident') {
-        window.location.href = '/resident';
+        router.replace('/resident');
       }
     } else if (status === 'unauthenticated') {
-      window.location.href = '/login';
+      router.replace('/login');
     }
-  }, [userRole, status]);
+  }, [userRole, status, router]);
+
+  if (status === 'loading') {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#081C2C', color: '#C5A059' }}>
+        <div style={{ textAlign: 'center', fontSize: '1.2rem', fontWeight: 600 }}>
+          ⚓ Cargando ServiceSync...
+        </div>
+      </div>
+    );
+  }
 
   const navLinks = [
     { href: '/dashboard', label: '📊 Resumen' },

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function WorkerLayout({
   children,
@@ -12,12 +12,23 @@ export default function WorkerLayout({
 }) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      window.location.href = '/login';
+      router.replace('/login');
     }
-  }, [status]);
+  }, [status, router]);
+
+  if (status === 'loading') {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#081C2C', color: '#C5A059' }}>
+        <div style={{ textAlign: 'center', fontSize: '1.2rem', fontWeight: 600 }}>
+          ⚓ Cargando ServiceSync...
+        </div>
+      </div>
+    );
+  }
 
   const NavMenu = () => (
     <nav style={{ display: 'flex', justifyContent: 'space-around', padding: '1rem', backgroundColor: 'var(--surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
