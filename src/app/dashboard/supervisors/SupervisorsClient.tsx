@@ -8,7 +8,51 @@ import { useRouter } from 'next/navigation';
 export default function SupervisorsClient({ supervisors }: { supervisors: any[] }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingSupervisor, setEditingSupervisor] = useState<any>(null);
+  
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Sort State
+  const [sortColumn, setSortColumn] = useState<string>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  
   const router = useRouter();
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortOrder('asc');
+    }
+  };
+
+  const filteredSupervisors = supervisors
+    .filter(sup => {
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const nameMatch = sup.name?.toLowerCase().includes(q);
+        const emailMatch = sup.email?.toLowerCase().includes(q);
+        const phoneMatch = sup.phone?.toLowerCase().includes(q);
+        if (!nameMatch && !emailMatch && !phoneMatch) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      let res = 0;
+      if (sortColumn === 'name') {
+        res = (a.name || '').localeCompare(b.name || '');
+      } else if (sortColumn === 'email') {
+        res = (a.email || '').localeCompare(b.email || '');
+      } else if (sortColumn === 'phone') {
+        res = (a.phone || '').localeCompare(b.phone || '');
+      } else if (sortColumn === 'createdAt') {
+        const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        res = tA - tB;
+      }
+      return sortOrder === 'asc' ? res : -res;
+    });
 
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de que deseas eliminar a este supervisor? Esta acción no se puede deshacer.')) return;
@@ -28,32 +72,91 @@ export default function SupervisorsClient({ supervisors }: { supervisors: any[] 
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>Directorio de Supervisores</h1>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Administra el personal con permisos de supervisión de campo y asignación de tareas.</p>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Administra el personal con permisos de supervisión de campo y asignación de tareas.</p>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <button className="btn btn-gold" onClick={() => setIsAddModalOpen(true)}>+ Añadir Supervisor</button>
         </div>
       </div>
 
-      <div className="glass-panel" style={{ padding: '2rem', overflowX: 'auto' }}>
+      {/* Filter and Search Bar */}
+      <div className="glass-panel" style={{ padding: '1rem 1.25rem', marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', backgroundColor: 'var(--surface)' }}>
+        <div style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span>🔍</span>
+          <input 
+            type="text"
+            className="input-field"
+            placeholder="Buscar supervisor por nombre, correo o teléfono..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ width: '100%', padding: '0.5rem 0.85rem', fontSize: '0.875rem' }}
+          />
+        </div>
+        {(searchQuery || sortColumn !== 'name' || sortOrder !== 'asc') && (
+          <button 
+            className="btn btn-outline"
+            onClick={() => {
+              setSearchQuery('');
+              setSortColumn('name');
+              setSortOrder('asc');
+            }}
+            style={{ padding: '0.45rem 0.75rem', fontSize: '0.8rem', color: 'var(--error)', borderColor: 'var(--error)' }}
+          >
+            ✕ Limpiar Filtros
+          </button>
+        )}
+      </div>
+
+      <div className="glass-panel" style={{ padding: '1.5rem', overflowX: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border)', fontSize: '0.875rem' }}>
+          <span style={{ fontWeight: 600, color: 'var(--primary)' }}>
+            📊 Tabla Tipo Excel • Mostrando {filteredSupervisors.length} de {supervisors.length} supervisores
+          </span>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+            💡 Haz clic en los encabezados para ordenar la tabla.
+          </span>
+        </div>
+
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
-              <th style={{ padding: '1rem' }}>Supervisor</th>
-              <th style={{ padding: '1rem' }}>Rol</th>
-              <th style={{ padding: '1rem' }}>Correo Electrónico</th>
-              <th style={{ padding: '1rem' }}>Teléfono</th>
-              <th style={{ padding: '1rem' }}>Fecha Registro</th>
-              <th style={{ padding: '1rem', textAlign: 'right' }}>Acciones</th>
+            <tr style={{ borderBottom: '2px solid var(--border)', backgroundColor: 'var(--surface-hover)', userSelect: 'none' }}>
+              <th style={{ padding: '0.85rem 1rem', cursor: 'pointer' }} onClick={() => handleSort('name')}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontWeight: 700 }}>Supervisor {sortColumn === 'name' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
+                  <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>🔻</span>
+                </div>
+              </th>
+              <th style={{ padding: '0.85rem 1rem' }}>
+                <span style={{ fontWeight: 700 }}>Rol</span>
+              </th>
+              <th style={{ padding: '0.85rem 1rem', cursor: 'pointer' }} onClick={() => handleSort('email')}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontWeight: 700 }}>Correo Electrónico {sortColumn === 'email' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
+                  <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>🔻</span>
+                </div>
+              </th>
+              <th style={{ padding: '0.85rem 1rem', cursor: 'pointer' }} onClick={() => handleSort('phone')}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontWeight: 700 }}>Teléfono {sortColumn === 'phone' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
+                  <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>🔻</span>
+                </div>
+              </th>
+              <th style={{ padding: '0.85rem 1rem', cursor: 'pointer' }} onClick={() => handleSort('createdAt')}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontWeight: 700 }}>Fecha Registro {sortColumn === 'createdAt' ? (sortOrder === 'asc' ? '⬆️' : '⬇️') : ''}</span>
+                  <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>🔻</span>
+                </div>
+              </th>
+              <th style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {supervisors.map(sup => (
-              <tr key={sup.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                <td style={{ padding: '1rem', fontWeight: 500 }}>
+            {filteredSupervisors.map(sup => (
+              <tr key={sup.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background-color 0.15s ease' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-hover)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--gold)', color: '#081C2C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.875rem', overflow: 'hidden' }}>
                       {sup.photoUrl ? (
@@ -65,24 +168,24 @@ export default function SupervisorsClient({ supervisors }: { supervisors: any[] 
                     {sup.name}
                   </div>
                 </td>
-                <td style={{ padding: '1rem' }}>
+                <td style={{ padding: '0.85rem 1rem' }}>
                   <span className="badge badge-gold">
                     Supervisor
                   </span>
                 </td>
-                <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{sup.email}</td>
-                <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{sup.phone || 'N/A'}</td>
-                <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{new Date(sup.createdAt).toLocaleDateString()}</td>
-                <td style={{ padding: '1rem', textAlign: 'right' }}>
-                  <button onClick={() => setEditingSupervisor(sup)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', marginRight: '0.5rem' }}>Editar</button>
-                  <button onClick={() => handleDelete(sup.id)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', color: 'var(--error)', borderColor: 'var(--error)' }}>Eliminar</button>
+                <td style={{ padding: '0.85rem 1rem', color: 'var(--text-secondary)' }}>{sup.email}</td>
+                <td style={{ padding: '0.85rem 1rem', color: 'var(--text-secondary)' }}>{sup.phone || 'N/A'}</td>
+                <td style={{ padding: '0.85rem 1rem', color: 'var(--text-secondary)' }}>{new Date(sup.createdAt).toLocaleDateString()}</td>
+                <td style={{ padding: '0.85rem 1rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                  <button onClick={() => setEditingSupervisor(sup)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem', marginRight: '0.5rem' }}>Editar</button>
+                  <button onClick={() => handleDelete(sup.id)} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem', color: 'var(--error)', borderColor: 'var(--error)' }}>Eliminar</button>
                 </td>
               </tr>
             ))}
-            {supervisors.length === 0 && (
+            {filteredSupervisors.length === 0 && (
               <tr>
-                <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                  No hay supervisores registrados.
+                <td colSpan={6} style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  No se encontraron supervisores con los filtros aplicados.
                 </td>
               </tr>
             )}
