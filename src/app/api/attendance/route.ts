@@ -10,7 +10,15 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const workerId = (session.user as any).id;
+    let workerId = (session.user as any).id;
+    if (!workerId && session.user.email) {
+      const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+      if (user) workerId = user.id;
+    }
+
+    if (!workerId) {
+      return NextResponse.json({ error: 'Worker ID not found' }, { status: 400 });
+    }
 
     // Get today's attendance record (from midnight to midnight)
     const today = new Date();
@@ -41,7 +49,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const workerId = (session.user as any).id;
+    let workerId = (session.user as any).id;
+    if (!workerId && session.user.email) {
+      const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+      if (user) workerId = user.id;
+    }
+
+    if (!workerId) {
+      return NextResponse.json({ error: 'Worker ID not found' }, { status: 400 });
+    }
     const { 
       action, 
       photoUrl, 
