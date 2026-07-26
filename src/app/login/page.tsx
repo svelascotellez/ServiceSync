@@ -24,15 +24,19 @@ export default function Login() {
       password,
     });
 
-    if (result?.error) {
+    if (result?.error || !result?.ok) {
       setError('Credenciales inválidas');
       setLoading(false);
     } else {
       try {
-        const res = await fetch('/api/auth/session');
-        const sessionData = await res.json();
-        const role = sessionData?.user?.role;
-        
+        const roleRes = await fetch('/api/auth/check-role', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const roleData = await roleRes.json();
+        const role = roleData?.role;
+
         if (role === 'supervisor') {
           window.location.href = '/supervisor';
         } else if (role === 'worker') {
