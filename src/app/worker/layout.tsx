@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
@@ -9,8 +10,14 @@ export default function WorkerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      window.location.href = '/login';
+    }
+  }, [status]);
 
   const NavMenu = () => (
     <nav style={{ display: 'flex', justifyContent: 'space-around', padding: '1rem', backgroundColor: 'var(--surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>

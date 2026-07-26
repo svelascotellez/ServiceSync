@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import exifr from 'exifr';
 import Link from 'next/link';
-import { formatCancunDate, getCancunTodayKey, formatCancunCalendarDayLabel } from '@/lib/dateUtils';
+import { formatCancunDate, formatCancunTime, getCancunTodayKey, formatCancunCalendarDayLabel } from '@/lib/dateUtils';
 
 export default function WorkerClient({ tasks }: { tasks: any[] }) {
   const [attendance, setAttendance] = useState<any>(null);
@@ -45,11 +45,19 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
 
   useEffect(() => {
     fetch('/api/attendance')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) return null;
+        return res.json();
+      })
       .then(data => {
-        if (data.attendance) {
+        if (data && data.attendance) {
           setAttendance(data.attendance);
         }
+      })
+      .catch(err => {
+        console.error('Error loading attendance:', err);
+      })
+      .finally(() => {
         setLoading(false);
       });
   }, []);
@@ -195,8 +203,8 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
         
         {attendance && (
           <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-            Hora de entrada: {new Date(attendance.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            {attendance.checkOutTime && ` • Hora de salida: ${new Date(attendance.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+            Hora de entrada: {formatCancunTime(attendance.checkInTime)}
+            {attendance.checkOutTime && ` • Hora de salida: ${formatCancunTime(attendance.checkOutTime)}`}
           </div>
         )}
       </div>
