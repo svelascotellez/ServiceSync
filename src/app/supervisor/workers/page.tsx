@@ -1,0 +1,21 @@
+import { prisma } from '@/lib/prisma';
+import WorkersClient from '@/app/dashboard/workers/WorkersClient';
+
+export const dynamic = 'force-dynamic';
+
+export default async function SupervisorWorkersPage() {
+  const workers = await prisma.user.findMany({
+    where: { role: 'worker' },
+    orderBy: { name: 'asc' },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      workerType: true,
+      photoUrl: true,
+    }
+  });
+
+  return <WorkersClient workers={JSON.parse(JSON.stringify(workers))} />;
+}

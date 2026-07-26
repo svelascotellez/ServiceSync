@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import Link from 'next/link';
 
 export default function Login() {
@@ -28,7 +28,17 @@ export default function Login() {
       setError('Credenciales inválidas');
       setLoading(false);
     } else {
-      window.location.href = "/";
+      const session = await getSession();
+      const role = (session?.user as any)?.role;
+      if (role === 'supervisor') {
+        window.location.href = '/supervisor';
+      } else if (role === 'worker') {
+        window.location.href = '/worker';
+      } else if (role === 'resident') {
+        window.location.href = '/resident';
+      } else {
+        window.location.href = '/dashboard';
+      }
     }
   };
 
