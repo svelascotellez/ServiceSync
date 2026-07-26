@@ -48,28 +48,29 @@ export function WorkerDossierModal({ worker, onClose }: WorkerDossierModalProps)
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 9999,
-      padding: '0.5rem'
+      zIndex: 99999,
+      padding: '1.5rem 1rem'
     }}>
       <div 
         className="glass-panel animate-fade-in printable-dossier" 
         style={{
           width: '100%',
-          maxWidth: '850px',
-          height: '92vh',
-          maxHeight: '92vh',
+          maxWidth: '900px',
+          maxHeight: 'calc(100vh - 3rem)',
+          height: 'auto',
+          margin: 'auto',
           backgroundColor: 'var(--surface)',
           borderRadius: '1rem',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
           border: '1px solid var(--gold)'
         }}
       >
         {/* Modal Fixed Top Header Bar */}
         <div style={{
-          padding: '1rem 1.25rem',
+          padding: '1rem 1.5rem',
           backgroundColor: '#081C2C',
           borderBottom: '1px solid var(--border)',
           display: 'flex',
@@ -77,17 +78,17 @@ export function WorkerDossierModal({ worker, onClose }: WorkerDossierModalProps)
           alignItems: 'center',
           flexShrink: 0
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '1.2rem' }}>🗂️</span>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold)', margin: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <span style={{ fontSize: '1.25rem' }}>🗂️</span>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--gold)', margin: 0 }}>
               Expediente Digital del Trabajador
             </h2>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
             <button 
               onClick={handlePrint}
               className="btn btn-outline"
-              style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', color: 'var(--gold)', borderColor: 'var(--gold)' }}
+              style={{ padding: '0.35rem 0.85rem', fontSize: '0.85rem', color: 'var(--gold)', borderColor: 'var(--gold)' }}
             >
               🖨️ Imprimir
             </button>
@@ -99,9 +100,10 @@ export function WorkerDossierModal({ worker, onClose }: WorkerDossierModalProps)
                 color: '#fff',
                 fontSize: '1.5rem',
                 cursor: 'pointer',
-                padding: '0 0.5rem',
+                padding: '0 0.25rem',
                 lineHeight: 1
               }}
+              title="Cerrar expedientes"
             >
               ✕
             </button>
@@ -127,8 +129,8 @@ export function WorkerDossierModal({ worker, onClose }: WorkerDossierModalProps)
           }}>
             {/* Avatar Photo */}
             <div style={{
-              width: '70px',
-              height: '70px',
+              width: '72px',
+              height: '72px',
               borderRadius: '50%',
               backgroundColor: 'var(--primary)',
               color: 'white',
@@ -136,7 +138,7 @@ export function WorkerDossierModal({ worker, onClose }: WorkerDossierModalProps)
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 'bold',
-              fontSize: '1.75rem',
+              fontSize: '1.8rem',
               overflow: 'hidden',
               border: '3px solid var(--gold)',
               boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
@@ -152,7 +154,7 @@ export function WorkerDossierModal({ worker, onClose }: WorkerDossierModalProps)
             {/* Details */}
             <div style={{ flex: 1, minWidth: '220px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <h1 style={{ fontSize: '1.35rem', fontWeight: 800, margin: 0 }}>{worker.name}</h1>
+                <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0 }}>{worker.name}</h1>
                 <span className="badge badge-gold">{worker.workerType || 'General'}</span>
                 <span className="badge badge-success">Activo</span>
               </div>
@@ -166,7 +168,7 @@ export function WorkerDossierModal({ worker, onClose }: WorkerDossierModalProps)
             </div>
           </div>
 
-          {/* Sticky Tab Bar (Horizontal Touch Scrollable on Mobile) */}
+          {/* Sticky Tab Bar */}
           <div style={{
             position: 'sticky',
             top: 0,
@@ -184,7 +186,7 @@ export function WorkerDossierModal({ worker, onClose }: WorkerDossierModalProps)
               style={{
                 padding: '0.85rem 1.1rem',
                 fontWeight: 600,
-                fontSize: '0.85rem',
+                fontSize: '0.875rem',
                 border: 'none',
                 background: 'none',
                 flexShrink: 0,
@@ -201,7 +203,7 @@ export function WorkerDossierModal({ worker, onClose }: WorkerDossierModalProps)
               style={{
                 padding: '0.85rem 1.1rem',
                 fontWeight: 600,
-                fontSize: '0.85rem',
+                fontSize: '0.875rem',
                 border: 'none',
                 background: 'none',
                 flexShrink: 0,
@@ -218,7 +220,7 @@ export function WorkerDossierModal({ worker, onClose }: WorkerDossierModalProps)
               style={{
                 padding: '0.85rem 1.1rem',
                 fontWeight: 600,
-                fontSize: '0.85rem',
+                fontSize: '0.875rem',
                 border: 'none',
                 background: 'none',
                 flexShrink: 0,
