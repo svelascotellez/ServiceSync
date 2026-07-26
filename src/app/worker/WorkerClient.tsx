@@ -203,42 +203,97 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
         </div>
       )}
 
-      {viewMode === 'calendar' && (
-        <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-          {Object.entries(
-            tasks.reduce((acc, task) => {
-              const d = task.dueDate ? new Date(task.dueDate).toLocaleDateString('es-ES', { weekday: 'long', month: 'short', day: 'numeric' }) : 'Sin fecha programada';
-              if (!acc[d]) acc[d] = [];
-              acc[d].push(task);
-              return acc;
-            }, {} as Record<string, any[]>)
-          ).map(([date, dayTasks]) => (
-            <div key={date} className="glass-panel" style={{ padding: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--primary)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', textTransform: 'capitalize' }}>
-                {date}
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {(dayTasks as any[]).map(task => (
-                  <Link href={`/worker/tasks/${task.id}`} key={task.id} style={{ textDecoration: 'none' }}>
-                    <div style={{ fontSize: '0.875rem', padding: '0.75rem', backgroundColor: 'var(--background)', borderRadius: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border)' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', overflow: 'hidden' }}>
-                        <strong style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', textDecoration: task.status === 'completed' || task.status === 'approved' ? 'line-through' : 'none', color: task.status === 'completed' || task.status === 'approved' ? 'var(--text-secondary)' : 'var(--text)' }}>
-                          {task.title}
-                        </strong>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>📍 {task.location}</span>
+      {viewMode === 'calendar' && (() => {
+        const todayKey = new Date().toISOString().split('T')[0];
+        const groups: Record<string, { dateObj: Date; isToday: boolean; label: string; tasks: any[] }> = {};
+
+        // Always ensure Today's card exists
+        const todayDate = new Date();
+        const todayLabel = `HOY • ${todayDate.toLocaleDateString('es-ES', { weekday: 'long', month: 'short', day: 'numeric' })}`;
+        groups[todayKey] = {
+          dateObj: todayDate,
+          isToday: true,
+          label: todayLabel,
+          tasks: []
+        };
+
+        tasks.forEach(task => {
+          if (!task.dueDate) {
+            const key = 'sin-fecha';
+            if (!groups[key]) {
+              groups[key] = { dateObj: new Date(0), isToday: false, label: 'Sin fecha programada', tasks: [] };
+            }
+            groups[key].tasks.push(task);
+          } else {
+            const d = new Date(task.dueDate);
+            const key = d.toISOString().split('T')[0];
+            const isToday = key === todayKey;
+            if (!groups[key]) {
+              const label = isToday
+                ? `HOY • ${d.toLocaleDateString('es-ES', { weekday: 'long', month: 'short', day: 'numeric' })}`
+                : d.toLocaleDateString('es-ES', { weekday: 'long', month: 'short', day: 'numeric' });
+              groups[key] = { dateObj: d, isToday, label, tasks: [] };
+            }
+            groups[key].tasks.push(task);
+          }
+        });
+
+        const sortedGroups = Object.values(groups).sort((a, b) => {
+          if (a.isToday) return -1;
+          if (b.isToday) return 1;
+          if (a.dateObj.getTime() === 0) return 1;
+          if (b.dateObj.getTime() === 0) return -1;
+          return a.dateObj.getTime() - b.dateObj.getTime();
+        });
+
+        return (
+          <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+            {sortedGroups.map(group => (
+              <div 
+                key={group.label} 
+                className="glass-panel" 
+                style={{ 
+                  padding: '1.5rem', 
+                  border: group.isToday ? '2px solid var(--gold)' : '1px solid var(--border)',
+                  backgroundColor: group.isToday ? 'var(--gold-light)' : 'var(--surface)',
+                  boxShadow: group.isToday ? '0 8px 20px rgba(197, 160, 89, 0.25)' : 'var(--shadow-md)',
+                  position: 'relative'
+                }}
+              >
+                {group.isToday && (
+                  <div style={{ position: 'absolute', top: '-12px', right: '16px', backgroundColor: 'var(--gold)', color: '#081C2C', padding: '0.2rem 0.75rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
+                    ★ Tareas de Hoy
+                  </div>
+                )}
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem', color: group.isToday ? '#8C6826' : 'var(--primary)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', textTransform: 'capitalize', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{group.label}</span>
+                  <span className="badge badge-gold">{group.tasks.length} {group.tasks.length === 1 ? 'tarea' : 'tareas'}</span>
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {group.tasks.map(task => (
+                    <Link href={`/worker/tasks/${task.id}`} key={task.id} style={{ textDecoration: 'none' }}>
+                      <div style={{ fontSize: '0.875rem', padding: '0.75rem', backgroundColor: 'var(--surface)', borderRadius: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', overflow: 'hidden' }}>
+                          <strong style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', textDecoration: task.status === 'completed' || task.status === 'approved' ? 'line-through' : 'none', color: task.status === 'completed' || task.status === 'approved' ? 'var(--text-secondary)' : 'var(--text-primary)' }}>
+                            {task.title}
+                          </strong>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>📍 {task.location}</span>
+                        </div>
+                        <span style={{ width: '12px', height: '12px', borderRadius: '50%', flexShrink: 0, backgroundColor: task.status === 'approved' ? 'var(--success)' : task.status === 'completed' ? '#3B82F6' : task.status === 'in-progress' ? 'var(--warning)' : 'var(--error)' }} title={task.status}></span>
                       </div>
-                      <span style={{ width: '12px', height: '12px', borderRadius: '50%', flexShrink: 0, backgroundColor: task.status === 'approved' ? 'var(--success)' : task.status === 'completed' ? '#3B82F6' : task.status === 'in-progress' ? 'var(--warning)' : 'var(--error)' }} title={task.status}></span>
+                    </Link>
+                  ))}
+                  {group.tasks.length === 0 && (
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem 0' }}>
+                      No tienes tareas asignadas para este día
                     </div>
-                  </Link>
-                ))}
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-          {tasks.length === 0 && (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No tienes tareas asignadas.</div>
-          )}
-        </div>
-      )}
+            ))}
+          </div>
+        );
+      })()}
       {viewMode === 'kanban' && (
         <div className="animate-fade-in" style={{ display: 'flex', gap: '1.5rem', overflowX: 'auto', paddingBottom: '1rem' }}>
           {[
