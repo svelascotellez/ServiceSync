@@ -9,7 +9,14 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'kanban' | 'calendar' | 'timeline' | 'table'>('kanban');
+  const [selectedWorkerId, setSelectedWorkerId] = useState<string>('all');
   const router = useRouter();
+
+  const filteredTasks = tasks.filter(task => {
+    if (selectedWorkerId === 'all') return true;
+    if (selectedWorkerId === 'unassigned') return !task.assignedTo;
+    return task.assignedTo?.id === selectedWorkerId;
+  });
 
   const handleDelete = async (id: string, isRecurring: boolean) => {
     let url = `/api/tasks/${id}`;
@@ -43,6 +50,24 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Supervisa y asigna tareas al personal.</p>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Worker Filter Dropdown */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <select 
+              className="input-field" 
+              style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', minWidth: '200px' }}
+              value={selectedWorkerId}
+              onChange={(e) => setSelectedWorkerId(e.target.value)}
+            >
+              <option value="all">👷 Todos los Trabajadores</option>
+              <option value="unassigned">❓ Sin Asignar</option>
+              {workers.map(w => (
+                <option key={w.id} value={w.id}>
+                  👤 {w.name} ({w.workerType || 'General'})
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div style={{ display: 'flex', backgroundColor: 'var(--background)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
             <button onClick={() => setViewMode('kanban')} className={`btn ${viewMode === 'kanban' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Tablero</button>
             <button onClick={() => setViewMode('calendar')} className={`btn ${viewMode === 'calendar' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Calendario</button>
@@ -68,7 +93,7 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
               </tr>
             </thead>
             <tbody>
-              {tasks.map(task => (
+              {filteredTasks.map(task => (
                 <tr key={task.id} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '1rem', whiteSpace: 'nowrap' }}>
                     {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sin fecha'}
@@ -98,10 +123,10 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
                   </td>
                 </tr>
               ))}
-              {tasks.length === 0 && (
+              {filteredTasks.length === 0 && (
                 <tr>
                   <td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                    No hay tareas creadas.
+                    No hay tareas para el filtro seleccionado.
                   </td>
                 </tr>
               )}
@@ -120,10 +145,10 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
           ].map(col => (
             <div key={col.id} className="glass-panel" style={{ padding: '1.5rem', minHeight: '500px', backgroundColor: 'var(--surface)', flex: '0 0 320px' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem', borderBottom: '2px solid var(--border)', paddingBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
-                {col.title} <span className="badge badge-pending">{tasks.filter(t => t.status === col.id).length}</span>
+                {col.title} <span className="badge badge-pending">{filteredTasks.filter(t => t.status === col.id).length}</span>
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {tasks.filter(t => t.status === col.id).map(task => (
+                {filteredTasks.filter(t => t.status === col.id).map(task => (
                   <div key={task.id} style={{ backgroundColor: 'var(--background)', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                       <strong style={{ fontSize: '1.1rem' }}>{task.title}</strong>
@@ -147,7 +172,7 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
                     </div>
                   </div>
                 ))}
-                {tasks.filter(t => t.status === col.id).length === 0 && (
+                {filteredTasks.filter(t => t.status === col.id).length === 0 && (
                   <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem 0', fontSize: '0.875rem' }}>Vacío</div>
                 )}
               </div>
@@ -158,7 +183,7 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
 
       {viewMode === 'timeline' && (
         <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '800px', margin: '0 auto' }}>
-          {tasks.map(task => (
+          {filteredTasks.map(task => (
             <div key={task.id} className="glass-panel" style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: '0.875rem', color: 'var(--primary)', fontWeight: 600, marginBottom: '0.25rem' }}>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sin fecha'}</div>
@@ -187,7 +212,7 @@ export default function TasksClient({ tasks, workers }: { tasks: any[], workers:
       {viewMode === 'calendar' && (
         <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
           {Object.entries(
-            tasks.reduce((acc, task) => {
+            filteredTasks.reduce((acc, task) => {
               const d = task.dueDate ? new Date(task.dueDate).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }) : 'Sin fecha';
               if (!acc[d]) acc[d] = [];
               acc[d].push(task);
