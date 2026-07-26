@@ -17,6 +17,7 @@ export default function SupervisorLayout({
   const navLinks = [
     { href: '/supervisor', label: '📊 Resumen' },
     { href: '/supervisor/tasks', label: '📋 Tareas' },
+    { href: '/supervisor/attendance', label: '⏱️ Asistencias' },
     { href: '/supervisor/workers', label: '👷 Trabajadores' },
   ];
 

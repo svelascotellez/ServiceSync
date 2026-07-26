@@ -24,6 +24,7 @@ export default function DashboardLayout({
   const navLinks = [
     { href: '/dashboard', label: '📊 Resumen' },
     { href: '/dashboard/tasks', label: '📋 Tareas' },
+    { href: '/dashboard/attendance', label: '⏱️ Asistencias' },
     { href: '/dashboard/supervisors', label: '👔 Supervisores' },
     { href: '/dashboard/workers', label: '👷 Trabajadores' },
     { href: '/dashboard/residents', label: '🏡 Residentes' },
