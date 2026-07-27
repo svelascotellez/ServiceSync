@@ -29,30 +29,19 @@ export default function Login() {
     const cleanEmail = email.trim().toLowerCase();
 
     const result = await signIn('credentials', {
-      redirect: false,
       email: cleanEmail,
       password,
+      callbackUrl: '/dashboard',
+      redirect: false,
     });
 
-    if (result?.error || !result?.ok) {
+    if (result?.error) {
       setError('Credenciales inválidas');
       setLoading(false);
+    } else if (result?.url) {
+      window.location.href = result.url;
     } else {
-      try {
-        const roleRes = await fetch('/api/auth/check-role', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: cleanEmail })
-        });
-        const roleData = await roleRes.json();
-        const role = roleData?.role;
-
-        await router.refresh();
-        const targetUrl = role === 'supervisor' ? '/supervisor' : role === 'worker' ? '/worker' : role === 'resident' ? '/resident' : '/dashboard';
-        window.location.href = targetUrl;
-      } catch (err) {
-        window.location.href = '/dashboard';
-      }
+      window.location.href = '/dashboard';
     }
   };
 
