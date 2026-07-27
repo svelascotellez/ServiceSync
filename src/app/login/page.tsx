@@ -47,15 +47,9 @@ export default function Login() {
         const roleData = await roleRes.json();
         const role = roleData?.role;
 
-        if (role === 'supervisor') {
-          window.location.href = '/supervisor';
-        } else if (role === 'worker') {
-          window.location.href = '/worker';
-        } else if (role === 'resident') {
-          window.location.href = '/resident';
-        } else {
-          window.location.href = '/dashboard';
-        }
+        await router.refresh();
+        const targetUrl = role === 'supervisor' ? '/supervisor' : role === 'worker' ? '/worker' : role === 'resident' ? '/resident' : '/dashboard';
+        window.location.href = targetUrl;
       } catch (err) {
         window.location.href = '/dashboard';
       }

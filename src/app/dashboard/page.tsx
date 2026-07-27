@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+import { formatCancunDateTime } from '@/lib/dateUtils';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,13 +46,13 @@ export default async function DashboardOverview() {
 
   const activities = [
     ...recentCompletedTasks.map(t => ({
-      time: t.completedAt ? new Date(t.completedAt).toLocaleString() : '',
+      time: t.completedAt ? formatCancunDateTime(t.completedAt) : '',
       text: `${t.assignedTo?.name || 'Alguien'} completó la tarea: ${t.title}`,
       type: 'task',
       date: t.completedAt ? new Date(t.completedAt) : new Date(0)
     })),
     ...recentAttendances.map(a => ({
-      time: a.checkInTime ? new Date(a.checkInTime).toLocaleString() : '',
+      time: a.checkInTime ? formatCancunDateTime(a.checkInTime) : '',
       text: `${a.worker?.name || 'Trabajador'} registró su entrada`,
       type: 'checkin',
       date: a.checkInTime ? new Date(a.checkInTime) : new Date(0)
