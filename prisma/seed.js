@@ -9,7 +9,7 @@ async function main() {
   // Admin
   const admin = await prisma.user.upsert({
     where: { email: 'admin@servicesync.com' },
-    update: { passwordHash },
+    update: {},
     create: {
       email: 'admin@servicesync.com',
       name: 'System Admin',
@@ -21,7 +21,7 @@ async function main() {
   // Worker
   const worker = await prisma.user.upsert({
     where: { email: 'worker@servicesync.com' },
-    update: { passwordHash },
+    update: {},
     create: {
       email: 'worker@servicesync.com',
       name: 'Maria G.',
@@ -35,7 +35,7 @@ async function main() {
   // Resident
   const resident = await prisma.user.upsert({
     where: { email: 'resident@servicesync.com' },
-    update: { passwordHash },
+    update: {},
     create: {
       email: 'resident@servicesync.com',
       name: 'Alice Smith',
@@ -48,7 +48,7 @@ async function main() {
   // Supervisor
   const supervisor = await prisma.user.upsert({
     where: { email: 'supervisor@servicesync.com' },
-    update: { passwordHash },
+    update: {},
     create: {
       email: 'supervisor@servicesync.com',
       name: 'Carlos R. (Supervisor)',

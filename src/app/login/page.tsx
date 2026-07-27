@@ -18,6 +18,7 @@ export default function Login() {
     try {
       localStorage.clear();
       sessionStorage.clear();
+      fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
     } catch (e) {}
   }, []);
 
@@ -27,10 +28,6 @@ export default function Login() {
     setError('');
     
     const cleanEmail = email.trim().toLowerCase();
-
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch (e) {}
 
     const result = await signIn('credentials', {
       redirect: false,
