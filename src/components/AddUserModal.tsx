@@ -21,6 +21,9 @@ export function AddUserModal({ role, isOpen, onClose, onSuccess }: AddUserModalP
     apartment: '',
     photoUrl: '',
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
@@ -38,12 +41,25 @@ export function AddUserModal({ role, isOpen, onClose, onSuccess }: AddUserModalP
         })
         .catch(console.error);
     }
+    if (isOpen) {
+      setFormData({ name: '', email: '', password: '', phone: '', workerType: '', apartment: '', photoUrl: '' });
+      setConfirmPassword('');
+      setShowPassword(false);
+      setShowConfirmPassword(false);
+      setError('');
+    }
   }, [role, isOpen]);
 
   if (!isOpen || !mounted) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.password !== confirmPassword) {
+      setError('Las contraseñas no coinciden. Por favor verifícalas.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -63,6 +79,7 @@ export function AddUserModal({ role, isOpen, onClose, onSuccess }: AddUserModalP
       }
 
       setFormData({ name: '', email: '', password: '', phone: '', workerType: '', apartment: '', photoUrl: '' });
+      setConfirmPassword('');
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -79,7 +96,7 @@ export function AddUserModal({ role, isOpen, onClose, onSuccess }: AddUserModalP
           Añadir {role === 'worker' ? 'Trabajador' : role === 'resident' ? 'Residente' : role === 'supervisor' ? 'Supervisor' : 'Administrador'}
         </h2>
         
-        {error && <div style={{ color: 'var(--error)', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</div>}
+        {error && <div style={{ color: 'var(--error)', marginBottom: '1rem', fontSize: '0.875rem', padding: '0.5rem 0.75rem', borderRadius: '6px', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--error)' }}>{error}</div>}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {role === 'worker' && (
@@ -123,7 +140,73 @@ export function AddUserModal({ role, isOpen, onClose, onSuccess }: AddUserModalP
           
           <div className="input-group">
             <label className="input-label">Contraseña</label>
-            <input required type="password" className="input-field" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <input 
+                required 
+                type={showPassword ? "text" : "password"} 
+                className="input-field" 
+                style={{ paddingRight: '2.5rem', width: '100%' }}
+                value={formData.password} 
+                onChange={(e) => setFormData({...formData, password: e.target.value})} 
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '0.75rem',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '1.1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0.25rem',
+                }}
+                title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
+          </div>
+
+          <div className="input-group">
+            <label className="input-label">Confirmar Contraseña</label>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <input 
+                required 
+                type={showConfirmPassword ? "text" : "password"} 
+                className="input-field" 
+                style={{ paddingRight: '2.5rem', width: '100%' }}
+                value={confirmPassword} 
+                onChange={(e) => setConfirmPassword(e.target.value)} 
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '0.75rem',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '1.1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0.25rem',
+                }}
+                title={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showConfirmPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
+            {confirmPassword.length > 0 && formData.password !== confirmPassword && (
+              <div style={{ color: 'var(--error)', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                ⚠️ Las contraseñas no coinciden
+              </div>
+            )}
           </div>
 
           <div className="input-group">
@@ -162,7 +245,7 @@ export function AddUserModal({ role, isOpen, onClose, onSuccess }: AddUserModalP
 
           <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
             <button type="button" onClick={onClose} className="btn btn-outline" style={{ flex: 1 }}>Cancelar</button>
-            <button type="submit" disabled={loading} className="btn btn-primary" style={{ flex: 1 }}>
+            <button type="submit" disabled={loading || (confirmPassword.length > 0 && formData.password !== confirmPassword)} className="btn btn-primary" style={{ flex: 1 }}>
               {loading ? 'Guardando...' : 'Guardar'}
             </button>
           </div>
