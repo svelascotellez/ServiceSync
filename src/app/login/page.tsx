@@ -133,11 +133,11 @@ export default function Login() {
         
         <div style={{ marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid #E5E9F0', fontSize: '0.85rem' }}>
           <p style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#0B3C5D' }}>Cuentas de Prueba (Contraseña: password123):</p>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: 'var(--text-secondary)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.8rem' }}>
-            <li>• Admin</li>
-            <li>• Supervisor</li>
-            <li>• Trabajador</li>
-            <li>• Residente</li>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: 'var(--text-secondary)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem' }}>
+            <li>• Admin: <code>admin@servicesync.com</code></li>
+            <li>• Supervisor: <code>supervisor@servicesync.com</code></li>
+            <li>• Trabajador: <code>worker@servicesync.com</code></li>
+            <li>• Residente: <code>resident@servicesync.com</code></li>
           </ul>
         </div>
       </div>
