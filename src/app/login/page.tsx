@@ -27,6 +27,10 @@ export default function Login() {
     
     const cleanEmail = email.trim().toLowerCase();
 
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {}
+
     const result = await signIn('credentials', {
       redirect: false,
       email: cleanEmail,

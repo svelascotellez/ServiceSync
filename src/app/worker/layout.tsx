@@ -30,6 +30,14 @@ export default function WorkerLayout({
     );
   }
 
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      await signOut({ redirect: false });
+    } catch (e) {}
+    window.location.href = '/login';
+  };
+
   const NavMenu = () => (
     <nav style={{ display: 'flex', justifyContent: 'space-around', padding: '1rem', backgroundColor: 'var(--surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
       <Link href="/worker" style={{ color: pathname === '/worker' ? 'var(--primary)' : 'var(--text-secondary)', textDecoration: 'none', fontWeight: pathname === '/worker' ? 700 : 500, fontSize: '1rem' }}>
@@ -53,7 +61,7 @@ export default function WorkerLayout({
             <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{session?.user?.name || 'Cargando...'}</span>
             <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>{(session?.user as any)?.role === 'worker' ? 'Trabajador' : (session?.user as any)?.role}</span>
           </div>
-          <button onClick={() => signOut({ callbackUrl: '/login' })} style={{ padding: '0.25rem 0.75rem', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', textDecoration: 'none', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600 }} title="Cerrar Sesión">
+          <button onClick={handleLogout} style={{ padding: '0.25rem 0.75rem', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', textDecoration: 'none', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600 }} title="Cerrar Sesión">
             Salir
           </button>
         </div>

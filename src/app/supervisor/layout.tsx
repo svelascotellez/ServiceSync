@@ -38,6 +38,14 @@ export default function SupervisorLayout({
     );
   }
 
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      await signOut({ redirect: false });
+    } catch (e) {}
+    window.location.href = '/login';
+  };
+
   const navLinks = [
     { href: '/supervisor', label: '📊 Resumen' },
     { href: '/supervisor/tasks', label: '📋 Tareas' },
@@ -112,7 +120,7 @@ export default function SupervisorLayout({
         </nav>
 
         <div style={{ padding: '1rem', borderTop: '1px solid var(--border)' }}>
-          <button onClick={() => signOut({ callbackUrl: '/login' })} className="btn btn-outline" style={{ width: '100%', justifyContent: 'center', cursor: 'pointer', borderColor: 'var(--error)', color: 'var(--error)' }}>
+          <button onClick={handleLogout} className="btn btn-outline" style={{ width: '100%', justifyContent: 'center', cursor: 'pointer', borderColor: 'var(--error)', color: 'var(--error)' }}>
             Cerrar Sesión
           </button>
         </div>

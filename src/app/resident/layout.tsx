@@ -29,6 +29,14 @@ export default function ResidentLayout({
     );
   }
 
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      await signOut({ redirect: false });
+    } catch (e) {}
+    window.location.href = '/login';
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--background)' }}>
       {/* Mobile-friendly Top Navigation */}
@@ -39,7 +47,7 @@ export default function ResidentLayout({
             <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{session?.user?.name || 'Cargando...'}</span>
             <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>{(session?.user as any)?.role === 'resident' ? 'Residente' : (session?.user as any)?.role}</span>
           </div>
-          <button onClick={() => signOut({ callbackUrl: '/login' })} style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', textDecoration: 'none', color: 'white', border: 'none', cursor: 'pointer' }} title="Cerrar Sesión">
+          <button onClick={handleLogout} style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', textDecoration: 'none', color: 'white', border: 'none', cursor: 'pointer' }} title="Cerrar Sesión">
             🚪
           </button>
         </div>
