@@ -18,7 +18,6 @@ export default function Login() {
     try {
       localStorage.clear();
       sessionStorage.clear();
-      fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
     } catch (e) {}
   }, []);
 
