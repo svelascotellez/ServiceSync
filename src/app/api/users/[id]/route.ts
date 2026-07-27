@@ -14,18 +14,19 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
 
     const { name, email, password, phone, workerType, apartment, photoUrl } = await req.json();
 
-    const dataToUpdate: any = {
-      name,
-      email,
-      phone: phone || null,
-    };
+    const normalizedEmail = email ? email.trim().toLowerCase() : undefined;
+
+    const dataToUpdate: any = {};
+    if (name) dataToUpdate.name = name.trim();
+    if (normalizedEmail) dataToUpdate.email = normalizedEmail;
+    if (phone !== undefined) dataToUpdate.phone = phone ? phone.trim() : null;
 
     if (photoUrl) {
       dataToUpdate.photoUrl = photoUrl;
     }
 
-    if (password) {
-      dataToUpdate.passwordHash = await bcrypt.hash(password, 10);
+    if (password && typeof password === 'string' && password.trim().length > 0) {
+      dataToUpdate.passwordHash = await bcrypt.hash(password.trim(), 10);
     }
 
     const user = await prisma.user.findUnique({ where: { id: params.id } });

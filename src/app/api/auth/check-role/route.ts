@@ -10,10 +10,8 @@ export async function POST(req: Request) {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    const user = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
-      select: { role: true }
-    });
+    const allUsers = await prisma.user.findMany({ select: { id: true, email: true, role: true } });
+    const user = allUsers.find(u => u.email.trim().toLowerCase() === normalizedEmail);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });

@@ -17,16 +17,20 @@ export const authOptions: NextAuthOptions = {
 
           const normalizedEmail = credentials.email.trim().toLowerCase();
 
-          const user = await prisma.user.findUnique({
-            where: { email: normalizedEmail }
-          });
+          const allUsers = await prisma.user.findMany();
+          const user = allUsers.find(u => u.email.trim().toLowerCase() === normalizedEmail);
 
           if (!user) {
             console.log('Login failed: user not found', normalizedEmail);
             return null;
           }
 
-          const isPasswordValid = await bcrypt.compare(credentials.password, user.passwordHash);
+          const rawPassword = credentials.password;
+          const trimmedPassword = credentials.password.trim();
+
+          const isPasswordValid = 
+            (await bcrypt.compare(rawPassword, user.passwordHash)) ||
+            (await bcrypt.compare(trimmedPassword, user.passwordHash));
 
           if (!isPasswordValid) {
             console.log('Login failed: invalid password for', normalizedEmail);
