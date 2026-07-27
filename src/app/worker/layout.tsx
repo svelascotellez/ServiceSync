@@ -33,9 +33,8 @@ export default function WorkerLayout({
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      await signOut({ redirect: false });
     } catch (e) {}
-    window.location.href = '/login';
+    await signOut({ callbackUrl: '/login' });
   };
 
   const NavMenu = () => (
