@@ -46,7 +46,7 @@ export const authOptions: NextAuthOptions = {
 
           const normalizedEmail = credentials.email.trim().toLowerCase();
 
-          const allUsers = await prisma.user.findMany();
+          const allUsers = await prisma.user.findMany().catch(() => []);
           const user = allUsers.find(u => u.email.trim().toLowerCase() === normalizedEmail);
 
           if (!user) {
@@ -89,6 +89,9 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.id = user.id;
         token.photoUrl = (user as any).photoUrl;
+      }
+      if (!token.id && token.sub) {
+        token.id = token.sub;
       }
       if (trigger === 'update' && session?.photoUrl) {
         token.photoUrl = session.photoUrl;

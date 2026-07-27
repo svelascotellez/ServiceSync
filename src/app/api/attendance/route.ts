@@ -10,9 +10,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    let workerId = (session.user as any).id;
-    if (!workerId && session.user.email) {
-      const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+    let workerId = (session.user as any)?.id;
+    if (!workerId && session.user?.email) {
+      const userEmail = session.user.email.trim().toLowerCase();
+      const allUsers = await prisma.user.findMany().catch(() => []);
+      const user = allUsers.find(u => u.email.trim().toLowerCase() === userEmail);
       if (user) workerId = user.id;
     }
 
@@ -49,9 +51,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    let workerId = (session.user as any).id;
-    if (!workerId && session.user.email) {
-      const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+    let workerId = (session.user as any)?.id;
+    if (!workerId && session.user?.email) {
+      const userEmail = session.user.email.trim().toLowerCase();
+      const allUsers = await prisma.user.findMany().catch(() => []);
+      const user = allUsers.find(u => u.email.trim().toLowerCase() === userEmail);
       if (user) workerId = user.id;
     }
 
