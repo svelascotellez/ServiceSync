@@ -28,34 +28,25 @@ export default function Login() {
     
     const cleanEmail = email.trim().toLowerCase();
 
-    const result = await signIn('credentials', {
-      email: cleanEmail,
-      password,
-      redirect: false,
-    });
-
-    if (result?.error || !result?.ok) {
-      setError('Credenciales inválidas');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const sessionRes = await fetch('/api/auth/session');
-      const sessionData = await sessionRes.json();
-      const role = sessionData?.user?.role;
+      const result = await signIn('credentials', {
+        email: cleanEmail,
+        password,
+        redirect: false,
+      });
 
-      if (role === 'worker') {
-        window.location.href = '/worker';
-      } else if (role === 'supervisor') {
-        window.location.href = '/supervisor';
-      } else if (role === 'resident') {
-        window.location.href = '/resident';
-      } else {
-        window.location.href = '/dashboard';
+      if (result?.error || !result?.ok) {
+        setError('Credenciales inválidas');
+        setLoading(false);
+        return;
       }
+
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 150);
     } catch (err) {
-      window.location.href = '/dashboard';
+      setError('Error al conectar con el servidor');
+      setLoading(false);
     }
   };
 
