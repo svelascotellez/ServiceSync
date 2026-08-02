@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn, signOut } from 'next-auth/react';
 import Link from 'next/link';
 
 export default function Login() {
@@ -22,17 +21,20 @@ export default function Login() {
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    if (loading) return;
+
     setLoading(true);
     setError('');
     
     const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
 
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail, password }),
+        body: JSON.stringify({ email: cleanEmail, password: cleanPassword }),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -52,6 +54,21 @@ export default function Login() {
       window.location.href = targetPath;
     } catch (err: any) {
       console.error('Login fetch error:', err);
+
+      try {
+        const checkRes = await fetch('/api/auth/login', { method: 'GET' });
+        const checkData = await checkRes.json();
+        if (checkData?.user?.role) {
+          const role = checkData.user.role;
+          const targetPath = role === 'supervisor' ? '/supervisor'
+                           : role === 'worker' ? '/worker'
+                           : role === 'resident' ? '/resident'
+                           : '/dashboard';
+          window.location.href = targetPath;
+          return;
+        }
+      } catch (checkErr) {}
+
       setError(err?.message ? `Error: ${err.message}` : 'Error al conectar con el servidor');
       setLoading(false);
     }
@@ -81,7 +98,7 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={(e) => { e.preventDefault(); handleLogin(e); }}>
+        <form onSubmit={handleLogin}>
           <div className="input-group">
             <label className="input-label" htmlFor="email">Correo Electrónico</label>
             <input 
@@ -134,8 +151,7 @@ export default function Login() {
           </div>
 
           <button 
-            type="button" 
-            onClick={handleLogin}
+            type="submit"
             className="btn btn-gold" 
             style={{ width: '100%', padding: '0.85rem', fontSize: '1rem' }}
             disabled={loading}
