@@ -50,8 +50,9 @@ export default function Login() {
                        : '/dashboard';
 
       window.location.href = targetPath;
-    } catch (err) {
-      setError('Error al conectar con el servidor');
+    } catch (err: any) {
+      console.error('Login fetch error:', err);
+      setError(err?.message ? `Error: ${err.message}` : 'Error al conectar con el servidor');
       setLoading(false);
     }
   };
