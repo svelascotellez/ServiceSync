@@ -7,6 +7,7 @@ import { formatCancunDate, formatCancunTime, getCancunTodayKey, formatCancunCale
 export default function WorkerClient({ tasks = [] }: { tasks?: any[] }) {
   const safeTasks = Array.isArray(tasks) ? tasks : [];
 
+  // ALL HOOKS DECLARED AT TOP LEVEL IN UNVARYING ORDER
   const [attendance, setAttendance] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -17,6 +18,32 @@ export default function WorkerClient({ tasks = [] }: { tasks?: any[] }) {
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'title'>('dueDate');
+
+  const [capitalizedDateStr, setCapitalizedDateStr] = useState<string>('');
+
+  useEffect(() => {
+    fetch('/api/attendance')
+      .then(res => {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then(data => {
+        if (data && data.attendance) {
+          setAttendance(data.attendance);
+        }
+      })
+      .catch(err => {
+        console.error('Error loading attendance:', err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    const todayStr = new Date().toLocaleDateString('es-MX', { timeZone: 'America/Cancun', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    setCapitalizedDateStr(todayStr.charAt(0).toUpperCase() + todayStr.slice(1));
+  }, []);
 
   const priorityWeight: Record<string, number> = { 'Alta': 3, 'Media': 2, 'Baja': 1 };
 
@@ -46,25 +73,6 @@ export default function WorkerClient({ tasks = [] }: { tasks?: any[] }) {
         return titleA.localeCompare(titleB);
       }
     });
-
-  useEffect(() => {
-    fetch('/api/attendance')
-      .then(res => {
-        if (!res.ok) return null;
-        return res.json();
-      })
-      .then(data => {
-        if (data && data.attendance) {
-          setAttendance(data.attendance);
-        }
-      })
-      .catch(err => {
-        console.error('Error loading attendance:', err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, action: 'checkIn' | 'checkOut') => {
     const file = e.target.files?.[0];
@@ -140,19 +148,10 @@ export default function WorkerClient({ tasks = [] }: { tasks?: any[] }) {
     }
   };
 
-  // tasks is passed as a prop
-
   if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Cargando...</div>;
 
   const isCheckedIn = attendance && !attendance.checkOutTime;
   const isCheckedOut = attendance && attendance.checkOutTime;
-
-  const [capitalizedDateStr, setCapitalizedDateStr] = useState<string>('');
-
-  useEffect(() => {
-    const todayStr = new Date().toLocaleDateString('es-MX', { timeZone: 'America/Cancun', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    setCapitalizedDateStr(todayStr.charAt(0).toUpperCase() + todayStr.slice(1));
-  }, []);
 
   return (
     <div className="animate-fade-in">
@@ -203,244 +202,309 @@ export default function WorkerClient({ tasks = [] }: { tasks?: any[] }) {
               type="file" 
               accept="image/*" 
               capture="user"
-              style={{ display: 'none' }} 
+              onChange={(e) => handlePhotoUpload(e, isCheckedIn ? 'checkOut' : 'checkIn')}
               disabled={actionLoading}
-              onChange={(e) => handlePhotoUpload(e, isCheckedIn ? 'checkOut' : 'checkIn')} 
+              style={{ display: 'none' }}
             />
           </label>
         )}
-        
-        {attendance && (
-          <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-            Hora de entrada: {formatCancunTime(attendance.checkInTime)}
-            {attendance.checkOutTime && ` • Hora de salida: ${formatCancunTime(attendance.checkOutTime)}`}
+      </div>
+
+      {/* Task Filters & Sort Controls */}
+      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          
+          {/* Top Bar: Search + View Switcher */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <input 
+                type="text" 
+                placeholder="🔍 Buscar tarea o ubicación..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.6rem 1rem',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border)',
+                  backgroundColor: 'var(--background)',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.9rem'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.25rem', backgroundColor: 'var(--background)', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+              <button 
+                onClick={() => setViewMode('kanban')}
+                style={{
+                  padding: '0.4rem 0.8rem',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: viewMode === 'kanban' ? 'var(--primary)' : 'transparent',
+                  color: viewMode === 'kanban' ? '#fff' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '0.85rem'
+                }}
+              >
+                📌 Kanban
+              </button>
+              <button 
+                onClick={() => setViewMode('list')}
+                style={{
+                  padding: '0.4rem 0.8rem',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: viewMode === 'list' ? 'var(--primary)' : 'transparent',
+                  color: viewMode === 'list' ? '#fff' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '0.85rem'
+                }}
+              >
+                📋 Lista
+              </button>
+              <button 
+                onClick={() => setViewMode('calendar')}
+                style={{
+                  padding: '0.4rem 0.8rem',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: viewMode === 'calendar' ? 'var(--primary)' : 'transparent',
+                  color: viewMode === 'calendar' ? '#fff' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '0.85rem'
+                }}
+              >
+                📅 Calendario
+              </button>
+            </div>
           </div>
-        )}
-      </div>
 
-      <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Mis Tareas ({filteredTasks.length})</h2>
-        <div style={{ display: 'flex', backgroundColor: 'var(--surface)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
-          <button onClick={() => setViewMode('list')} className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Lista</button>
-          <button onClick={() => setViewMode('calendar')} className={`btn ${viewMode === 'calendar' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Calendario</button>
-          <button onClick={() => setViewMode('kanban')} className={`btn ${viewMode === 'kanban' ? 'btn-primary' : 'btn-outline'}`} style={{ border: 'none', padding: '0.5rem 1rem' }}>Tablero</button>
+          {/* Bottom Bar: Filters & Sort Dropdowns */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center', paddingTop: '0.5rem', borderTop: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Estado:</span>
+              <select 
+                value={statusFilter} 
+                onChange={(e) => setStatusFilter(e.target.value)}
+                style={{ padding: '0.4rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
+              >
+                <option value="all">Todos los Estados</option>
+                <option value="pending">Pendientes</option>
+                <option value="in-progress">En Progreso</option>
+                <option value="completed">Completadas</option>
+                <option value="approved">Aprobadas</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Prioridad:</span>
+              <select 
+                value={priorityFilter} 
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                style={{ padding: '0.4rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
+              >
+                <option value="all">Todas las Prioridades</option>
+                <option value="Alta">Alta</option>
+                <option value="Media">Media</option>
+                <option value="Baja">Baja</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Ordenar por:</span>
+              <select 
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value as any)}
+                style={{ padding: '0.4rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
+              >
+                <option value="dueDate">Fecha Vencimiento</option>
+                <option value="priority">Prioridad</option>
+                <option value="title">Nombre</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Worker Tasks Filter & Sort Toolbar */}
-      <div className="glass-panel" style={{ padding: '1rem', marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center', backgroundColor: 'var(--surface)' }}>
-        <div style={{ flex: '1 1 180px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span>🔍</span>
-          <input 
-            type="text"
-            className="input-field"
-            placeholder="Buscar por título o ubicación..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: '100%', padding: '0.45rem 0.75rem', fontSize: '0.85rem' }}
-          />
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Estado:</span>
-          <select 
-            className="input-field" 
-            style={{ padding: '0.45rem 0.6rem', fontSize: '0.85rem' }}
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">Todos</option>
-            <option value="pending">Pendientes</option>
-            <option value="in-progress">En Progreso</option>
-            <option value="completed">Por Revisar</option>
-            <option value="approved">Aprobadas</option>
-            <option value="cancelled">Canceladas</option>
-          </select>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Prioridad:</span>
-          <select 
-            className="input-field" 
-            style={{ padding: '0.45rem 0.6rem', fontSize: '0.85rem' }}
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-          >
-            <option value="all">Todas</option>
-            <option value="Alta">Alta</option>
-            <option value="Media">Media</option>
-            <option value="Baja">Baja</option>
-          </select>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Ordenar:</span>
-          <select 
-            className="input-field" 
-            style={{ padding: '0.45rem 0.6rem', fontSize: '0.85rem' }}
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-          >
-            <option value="dueDate">Fecha Límite</option>
-            <option value="priority">Prioridad</option>
-            <option value="title">Título</option>
-          </select>
-        </div>
-      </div>
-
+      {/* Main View Area */}
       {viewMode === 'list' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {filteredTasks.map(task => (
-            <Link href={`/worker/tasks/${task.id}`} key={task.id} style={{ textDecoration: 'none' }}>
-              <div className="glass-panel" style={{ padding: '1rem', display: 'flex', alignItems: 'flex-start', gap: '1rem', borderLeft: task.status === 'completed' || task.status === 'approved' ? '4px solid var(--success)' : (task.status === 'in-progress' ? '4px solid var(--primary)' : '4px solid var(--warning)') }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${task.status === 'completed' || task.status === 'approved' ? 'var(--success)' : 'var(--text-secondary)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: task.status === 'completed' || task.status === 'approved' ? 'var(--success)' : 'transparent', color: 'white', fontSize: '0.75rem', flexShrink: 0, marginTop: '0.25rem' }}>
-                  {(task.status === 'completed' || task.status === 'approved') && '✓'}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ fontWeight: 600, fontSize: '1rem', textDecoration: task.status === 'completed' || task.status === 'approved' ? 'line-through' : 'none', color: task.status === 'completed' || task.status === 'approved' ? 'var(--text-secondary)' : 'var(--text-primary)' }}>
-                    {task.title}
-                  </h3>
-                  <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                    <span>📍 {task.location}</span>
-                    {task.status === 'in-progress' && <span style={{color: 'var(--primary)', fontWeight: 500}}>En progreso</span>}
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>Mis Tareas Asignadas</h2>
+          {filteredTasks.length === 0 ? (
+            <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+              No se encontraron tareas con los filtros seleccionados.
+            </div>
+          ) : (
+            filteredTasks.map(task => (
+              <div key={task.id} className="glass-panel" style={{ padding: '1.25rem', borderLeft: `4px solid ${task.priority === 'Alta' ? 'var(--error)' : task.priority === 'Media' ? 'var(--warning)' : 'var(--info)'}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text)' }}>{task.title}</h3>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>📍 {task.location || 'Sin ubicación'}</p>
                   </div>
+                  <span className={`badge ${task.status === 'completed' ? 'badge-completed' : task.status === 'approved' ? 'badge-success' : task.status === 'in-progress' ? 'badge-warning' : 'badge-pending'}`}>
+                    {task.status === 'completed' ? 'Por Revisar' : task.status === 'approved' ? 'Aprobada' : task.status === 'in-progress' ? 'En Progreso' : 'Pendiente'}
+                  </span>
+                </div>
+
+                {task.description && (
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: '1rem', whiteSpace: 'pre-line' }}>
+                    {task.description}
+                  </p>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border)', fontSize: '0.85rem' }}>
+                  <div style={{ color: 'var(--text-secondary)' }}>
+                    📅 Vence: {formatCancunDate(task.dueDate)}
+                  </div>
+                  <Link href={`/worker/tasks/${task.id}`} className="btn btn-outline" style={{ padding: '0.35rem 0.75rem', fontSize: '0.85rem' }}>
+                    Ver Detalles ➔
+                  </Link>
                 </div>
               </div>
-            </Link>
-          ))}
-          {filteredTasks.length === 0 && (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No hay tareas que coincidan con los filtros.</div>
+            ))
           )}
         </div>
       )}
 
-      {viewMode === 'calendar' && (() => {
-        const todayKey = getCancunTodayKey();
-        const groups: Record<string, { dateObj: Date; isToday: boolean; label: string; tasks: any[] }> = {};
-
-        // Always ensure Today's card exists in Cancún time
-        const todayDate = new Date();
-        const todayLabel = formatCancunCalendarDayLabel(todayDate, true);
-        groups[todayKey] = {
-          dateObj: todayDate,
-          isToday: true,
-          label: todayLabel,
-          tasks: []
-        };
-
-        filteredTasks.forEach(task => {
-          if (!task.dueDate) {
-            const key = 'sin-fecha';
-            if (!groups[key]) {
-              groups[key] = { dateObj: new Date(0), isToday: false, label: 'Sin fecha programada', tasks: [] };
-            }
-            groups[key].tasks.push(task);
-          } else {
-            const d = new Date(task.dueDate);
-            const key = getCancunTodayKey(d);
-            const isToday = key === todayKey;
-            if (!groups[key]) {
-              const label = formatCancunCalendarDayLabel(d, isToday);
-              groups[key] = { dateObj: d, isToday, label, tasks: [] };
-            }
-            groups[key].tasks.push(task);
-          }
-        });
-
-        const sortedGroups = Object.values(groups).sort((a, b) => {
-          if (a.isToday) return -1;
-          if (b.isToday) return 1;
-          if (a.dateObj.getTime() === 0) return 1;
-          if (b.dateObj.getTime() === 0) return -1;
-          return a.dateObj.getTime() - b.dateObj.getTime();
-        });
-
-        return (
-          <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-            {sortedGroups.map(group => (
-              <div 
-                key={group.label} 
-                className="glass-panel" 
-                style={{ 
-                  padding: '1.5rem', 
-                  border: group.isToday ? '2px solid var(--gold)' : '1px solid var(--border)',
-                  backgroundColor: group.isToday ? 'var(--gold-light)' : 'var(--surface)',
-                  boxShadow: group.isToday ? '0 8px 20px rgba(197, 160, 89, 0.25)' : 'var(--shadow-md)',
-                  position: 'relative'
-                }}
-              >
-                {group.isToday && (
-                  <div style={{ position: 'absolute', top: '-12px', right: '16px', backgroundColor: 'var(--gold)', color: '#081C2C', padding: '0.2rem 0.75rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
-                    ★ Tareas de Hoy
-                  </div>
-                )}
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem', color: group.isToday ? '#8C6826' : 'var(--primary)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', textTransform: 'capitalize', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>{group.label}</span>
-                  <span className="badge badge-gold">{group.tasks.length} {group.tasks.length === 1 ? 'tarea' : 'tareas'}</span>
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {group.tasks.map(task => (
-                    <Link href={`/worker/tasks/${task.id}`} key={task.id} style={{ textDecoration: 'none' }}>
-                      <div style={{ fontSize: '0.875rem', padding: '0.75rem', backgroundColor: 'var(--surface)', borderRadius: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border)' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', overflow: 'hidden' }}>
-                          <strong style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', textDecoration: task.status === 'completed' || task.status === 'approved' ? 'line-through' : 'none', color: task.status === 'completed' || task.status === 'approved' ? 'var(--text-secondary)' : 'var(--text-primary)' }}>
-                            {task.title}
-                          </strong>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>📍 {task.location}</span>
-                        </div>
-                        <span style={{ width: '12px', height: '12px', borderRadius: '50%', flexShrink: 0, backgroundColor: task.status === 'cancelled' ? 'var(--error)' : task.status === 'approved' ? 'var(--success)' : task.status === 'completed' ? '#3B82F6' : task.status === 'in-progress' ? 'var(--warning)' : 'var(--text-secondary)' }} title={task.status}></span>
-                      </div>
-                    </Link>
-                  ))}
-                  {group.tasks.length === 0 && (
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem 0' }}>
-                      No tienes tareas asignadas para este día
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        );
-      })()}
       {viewMode === 'kanban' && (
-        <div className="animate-fade-in" style={{ display: 'flex', gap: '1.5rem', overflowX: 'auto', paddingBottom: '1rem' }}>
-          {[
-            { id: 'pending', title: 'Pendientes' },
-            { id: 'in-progress', title: 'En Progreso' },
-            { id: 'completed', title: 'Por Revisar' },
-            { id: 'approved', title: 'Aprobadas' },
-            { id: 'cancelled', title: 'Canceladas' },
-          ].map(col => (
-            <div key={col.id} className="glass-panel" style={{ padding: '1.5rem', minHeight: '500px', backgroundColor: 'var(--surface)', flex: '0 0 320px' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem', borderBottom: '2px solid var(--border)', paddingBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
-                {col.title} <span className="badge badge-pending">{filteredTasks.filter(t => t.status === col.id).length}</span>
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {filteredTasks.filter(t => t.status === col.id).map(task => (
-                  <Link href={`/worker/tasks/${task.id}`} key={task.id} style={{ textDecoration: 'none' }}>
-                    <div style={{ backgroundColor: 'var(--background)', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', cursor: 'pointer', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                        <strong style={{ fontSize: '1.1rem', color: 'var(--text)' }}>{task.title}</strong>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: task.priority === 'Alta' ? 'var(--error)' : 'var(--text-secondary)' }}>{task.priority}</span>
-                      </div>
-                      <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        📅 {formatCancunDate(task.dueDate)}
-                      </div>
-                      <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                        📍 {task.location}
-                      </div>
-                    </div>
-                  </Link>
+        <div>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>Tablero Kanban</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
+            
+            {/* Column 1: Pendientes */}
+            <div className="glass-panel" style={{ padding: '1rem', backgroundColor: 'var(--surface)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '2px solid var(--warning)' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--warning)' }}>📋 Pendientes</h3>
+                <span className="badge" style={{ backgroundColor: 'rgba(245, 158, 11, 0.2)', color: 'var(--warning)' }}>
+                  {filteredTasks.filter(t => t.status === 'pending').length}
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {filteredTasks.filter(t => t.status === 'pending').map(task => (
+                  <KanbanCard key={task.id} task={task} />
                 ))}
-                {tasks.filter(t => t.status === col.id).length === 0 && (
-                  <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem 0', fontSize: '0.875rem' }}>Vacío</div>
-                )}
               </div>
             </div>
-          ))}
+
+            {/* Column 2: En Progreso */}
+            <div className="glass-panel" style={{ padding: '1rem', backgroundColor: 'var(--surface)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '2px solid var(--primary)' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--primary)' }}>🚀 En Progreso</h3>
+                <span className="badge" style={{ backgroundColor: 'rgba(14, 165, 233, 0.2)', color: 'var(--primary)' }}>
+                  {filteredTasks.filter(t => t.status === 'in-progress').length}
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {filteredTasks.filter(t => t.status === 'in-progress').map(task => (
+                  <KanbanCard key={task.id} task={task} />
+                ))}
+              </div>
+            </div>
+
+            {/* Column 3: Completadas / Aprobadas */}
+            <div className="glass-panel" style={{ padding: '1rem', backgroundColor: 'var(--surface)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '2px solid var(--success)' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--success)' }}>✅ Realizadas</h3>
+                <span className="badge" style={{ backgroundColor: 'rgba(16, 185, 129, 0.2)', color: 'var(--success)' }}>
+                  {filteredTasks.filter(t => t.status === 'completed' || t.status === 'approved').length}
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {filteredTasks.filter(t => t.status === 'completed' || t.status === 'approved').map(task => (
+                  <KanbanCard key={task.id} task={task} />
+                ))}
+              </div>
+            </div>
+
+          </div>
         </div>
       )}
+
+      {viewMode === 'calendar' && (
+        <CalendarView tasks={filteredTasks} />
+      )}
+    </div>
+  );
+}
+
+function KanbanCard({ task }: { task: any }) {
+  return (
+    <div 
+      style={{
+        padding: '1rem',
+        borderRadius: '8px',
+        backgroundColor: 'var(--background)',
+        border: '1px solid var(--border)',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.5rem' }}>
+        <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>{task.title}</h4>
+        <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: task.priority === 'Alta' ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)', color: task.priority === 'Alta' ? 'var(--error)' : 'var(--warning)', fontWeight: 700 }}>
+          {task.priority || 'Normal'}
+        </span>
+      </div>
+      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>📍 {task.location || 'Sin ubicación'}</p>
+      
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.5rem', borderTop: '1px dashed var(--border)', fontSize: '0.75rem' }}>
+        <span style={{ color: 'var(--text-secondary)' }}>📅 {formatCancunDate(task.dueDate)}</span>
+        <Link href={`/worker/tasks/${task.id}`} style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
+          Ver ➔
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function CalendarView({ tasks }: { tasks: any[] }) {
+  // Calendar day calculation using Cancún timezone
+  const todayKey = getCancunTodayKey();
+  
+  // Generate days array for current month dynamically
+  const daysInMonth = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7 + i);
+    const dateKey = getCancunTodayKey(d);
+    return {
+      date: d,
+      dateKey,
+      isToday: dateKey === todayKey,
+      tasks: tasks.filter(t => t.dueDate && getCancunTodayKey(new Date(t.dueDate)) === dateKey)
+    };
+  });
+
+  return (
+    <div>
+      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>Calendario de Tareas</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {daysInMonth.map((day, idx) => (
+          <div key={idx} className="glass-panel" style={{ padding: '1rem', borderLeft: day.isToday ? '4px solid var(--primary)' : '1px solid var(--border)' }}>
+            <div style={{ fontWeight: 700, color: day.isToday ? 'var(--primary)' : 'var(--text-primary)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+              {formatCancunCalendarDayLabel(day.date, day.isToday)}
+            </div>
+
+            {day.tasks.length === 0 ? (
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>Sin tareas programadas</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {day.tasks.map(task => (
+                  <div key={task.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', backgroundColor: 'var(--background)', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{task.title}</span>
+                    <Link href={`/worker/tasks/${task.id}`} style={{ fontSize: '0.75rem', color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
+                      Ver Detalles ➔
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
