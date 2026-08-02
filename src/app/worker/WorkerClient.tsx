@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import exifr from 'exifr';
 import Link from 'next/link';
 import { formatCancunDate, formatCancunTime, getCancunTodayKey, formatCancunCalendarDayLabel } from '@/lib/dateUtils';
 
@@ -75,6 +74,8 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
       let time: Date | null = null;
 
       try {
+        const exifrModule = await import('exifr');
+        const exifr = exifrModule.default || exifrModule;
         const exifData = await exifr.parse(file, { pick: ['latitude', 'longitude', 'DateTimeOriginal'] });
         if (exifData) {
           lat = exifData.latitude || null;

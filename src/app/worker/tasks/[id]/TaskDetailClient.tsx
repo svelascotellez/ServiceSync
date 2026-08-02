@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from 'react';
-import exifr from 'exifr';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatCancunDate, formatCancunDateTime } from '@/lib/dateUtils';
@@ -25,6 +24,8 @@ export default function TaskDetailClient({ task }: { task: any }) {
       let time: Date | null = null;
 
       try {
+        const exifrModule = await import('exifr');
+        const exifr = exifrModule.default || exifrModule;
         const exifData = await exifr.parse(file, { pick: ['latitude', 'longitude', 'DateTimeOriginal'] });
         if (exifData) {
           lat = exifData.latitude || null;
