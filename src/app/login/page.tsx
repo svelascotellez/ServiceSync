@@ -29,19 +29,27 @@ export default function Login() {
     const cleanEmail = email.trim().toLowerCase();
 
     try {
-      const result = await signIn('credentials', {
-        email: cleanEmail,
-        password,
-        redirect: false,
+      const res = await fetch('/api/auth/[...nextauth]', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, password }),
       });
 
-      if (result?.error || !result?.ok) {
-        setError('Credenciales inválidas');
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.ok) {
+        setError(data.error || 'Credenciales inválidas');
         setLoading(false);
         return;
       }
 
-      window.location.href = '/dashboard';
+      const role = data.user?.role;
+      const targetPath = role === 'supervisor' ? '/supervisor'
+                       : role === 'worker' ? '/worker'
+                       : role === 'resident' ? '/resident'
+                       : '/dashboard';
+
+      window.location.href = targetPath;
     } catch (err) {
       setError('Error al conectar con el servidor');
       setLoading(false);
