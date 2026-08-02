@@ -1,25 +1,29 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 
 export default function ResidentLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.replace('/login');
-    }
-  }, [status, router]);
+    fetch('/api/auth/login')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.user) {
+          setUser(data.user);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#081C2C', color: '#C5A059' }}>
         <div style={{ textAlign: 'center', fontSize: '1.2rem', fontWeight: 600 }}>
@@ -33,7 +37,7 @@ export default function ResidentLayout({
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (e) {}
-    await signOut({ callbackUrl: '/login' });
+    window.location.href = '/login';
   };
 
   return (
@@ -43,8 +47,8 @@ export default function ResidentLayout({
         <div style={{ fontWeight: 700, fontSize: '1.25rem' }}>ServiceSync</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{session?.user?.name || 'Cargando...'}</span>
-            <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>{(session?.user as any)?.role === 'resident' ? 'Residente' : (session?.user as any)?.role}</span>
+            <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{user?.name || 'Residente'}</span>
+            <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>Residente</span>
           </div>
           <button onClick={handleLogout} style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', textDecoration: 'none', color: 'white', border: 'none', cursor: 'pointer' }} title="Cerrar Sesión">
             🚪

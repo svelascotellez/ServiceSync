@@ -1,23 +1,16 @@
 import SettingsClient from './SettingsClient';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { redirect } from 'next/navigation';
+import { getServerSession } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
-  const session = await getServerSession(authOptions);
-  
-  // Debug logic
-  if (!session) {
-    redirect('/login');
-  }
+  const session = await getServerSession().catch(() => null);
 
   const workerTypes = await prisma.workerType.findMany({
     orderBy: { name: 'asc' },
     select: { id: true, name: true, schedule: true }
-  });
+  }).catch(() => []);
 
   return <SettingsClient initialWorkerTypes={JSON.parse(JSON.stringify(workerTypes))} />;
 }

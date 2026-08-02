@@ -1,13 +1,12 @@
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { getServerSession } from '@/lib/auth';
 import WorkerClient from './WorkerClient';
 
 export const dynamic = 'force-dynamic';
 
 export default async function WorkerPage() {
   try {
-    const session = await getServerSession(authOptions).catch(() => null);
+    const session = await getServerSession().catch(() => null);
     const userId = (session?.user as any)?.id;
     const userEmail = (session?.user?.email || '').trim().toLowerCase();
 

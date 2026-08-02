@@ -1,27 +1,18 @@
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { redirect } from 'next/navigation';
+import { getServerSession } from '@/lib/auth';
 import AttendanceClient from './AttendanceClient';
 
 export default async function WorkerAttendancePage() {
-  const session = await getServerSession(authOptions);
-  
-  if (!session) {
-    redirect('/login');
-  }
+  const session = await getServerSession().catch(() => null);
+  const userEmail = session?.user?.email || '';
 
-  const user = await prisma.user.findUnique({ where: { email: session.user?.email || '' } });
+  const user = userEmail ? await prisma.user.findUnique({ where: { email: userEmail } }).catch(() => null) : null;
   
-  if (!user || user.role !== 'worker') {
-    redirect('/login');
-  }
-
-  const attendances = await prisma.attendance.findMany({
+  const attendances = user ? await prisma.attendance.findMany({
     where: { workerId: user.id },
     orderBy: { date: 'desc' },
-    take: 30 // Fetch last 30 days
-  });
+    take: 30
+  }).catch(() => []) : [];
 
   return <AttendanceClient attendances={JSON.parse(JSON.stringify(attendances))} />;
 }

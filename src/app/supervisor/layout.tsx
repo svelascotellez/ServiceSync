@@ -2,33 +2,31 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { signOut, useSession } from 'next-auth/react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 export default function SupervisorLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session, status } = useSession();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const pathname = usePathname();
-  const router = useRouter();
-  const userRole = (session?.user as any)?.role;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (status === 'authenticated' && userRole) {
-      if (userRole === 'worker') {
-        router.replace('/worker');
-      } else if (userRole === 'resident') {
-        router.replace('/resident');
-      }
-    } else if (status === 'unauthenticated') {
-      router.replace('/login');
-    }
-  }, [userRole, status, router]);
+    fetch('/api/auth/login')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.user) {
+          setUser(data.user);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#081C2C', color: '#C5A059' }}>
         <div style={{ textAlign: 'center', fontSize: '1.2rem', fontWeight: 600 }}>
@@ -42,7 +40,7 @@ export default function SupervisorLayout({
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (e) {}
-    await signOut({ callbackUrl: '/login' });
+    window.location.href = '/login';
   };
 
   const navLinks = [
@@ -140,11 +138,11 @@ export default function SupervisorLayout({
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: 'auto' }}>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{session?.user?.name || 'Supervisor'}</div>
+              <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{user?.name || 'Supervisor'}</div>
               <div style={{ fontSize: '0.75rem', color: 'var(--gold)', fontWeight: 600 }}>Supervisor de Campo</div>
             </div>
             <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>
-              {session?.user?.name ? session.user.name.charAt(0) : 'S'}
+              {user?.name ? user.name.charAt(0) : 'S'}
             </div>
           </div>
         </header>
