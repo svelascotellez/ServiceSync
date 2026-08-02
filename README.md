@@ -1,88 +1,112 @@
-# ServiceSync 🛠️
+# ServiceSync 🛠️ (Puerto Aventuras Field Service Management)
 
 ![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
 ![Prisma](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white)
 ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Railway](https://img.shields.io/badge/Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)
 
-ServiceSync is a modern, full-stack field service management application built with **Next.js 16**, **React 19**, and **Prisma**. It is designed to streamline task delegation, worker tracking, and community communication for residential and commercial complexes.
+ServiceSync is a modern, full-stack field service management application built with **Next.js 16**, **React 19**, **Prisma**, and a native **Web Crypto API Authentication Engine**. Designed specifically for luxury resort and residential communities such as **Puerto Aventuras**, it streamlines task delegation, workforce attendance, GPS-verified photo evidence, and multi-role operations.
+
+---
+
+## 🌐 Live Production
+- **Production URL:** [https://servicesync-production.up.railway.app](https://servicesync-production.up.railway.app)
+- **Deployment Platform:** Railway.app continuous deployment pipeline
+
+---
 
 ## 🚀 Key Features
 
-*   **Role-Based Access Control:** Tailored experiences for Administrators, Workers, and Residents.
-*   **Advanced Task Management:** Create one-off or recurring tasks. Track phases from Pending -> In-Progress -> Completed -> **Approved**.
-*   **Interactive Community Feedback:** Residents and Admins can interact with tasks by leaving text comments and uploading photos for better context.
-*   **Multiple Views:** Visualize operations via Kanban Boards, Calendars, Timelines, or standard Data Tables. (Workers also have access to Kanban, Calendar, and List views!).
-*   **Field Operations Security:** 
-    *   Workers execute tasks, capture initial/final photographic evidence, and automatically register GPS coordinates (via EXIF metadata or browser Geolocation).
-    *   Workers are restricted to only start tasks that are scheduled for the current day.
-*   **Comprehensive Workforce Tracking:** 
-    *   Attendance tracking (Check-in/out).
-    *   Dedicated **Attendance History Tab** for workers to review their check-in/out times, exact coordinates, and selfies.
-*   **Bulk Registration:** Excel/CSV upload support for bulk-creating resident accounts.
+* **Native Web Crypto Authentication Engine:**
+  * High-speed, lightweight JWT token signing and verification (`servicesync_token`) built with native `crypto.subtle` (HMAC SHA-256).
+  * HTTP/2 RFC 7540 compliant single-header Set-Cookie formatting designed specifically for proxy environments like Railway Hikari.
+* **4 Independent User Roles:**
+  * 🛡️ **Administrators:** Full system control, workforce oversight, system settings, worker type configuration, and executive reports.
+  * 👔 **Supervisors:** Independent management dashboard (`/supervisor`) to create, edit, assign, approve, or cancel tasks, and supervise daily attendance.
+  * 👷 **Workers:** Mobile-first interface (`/worker`) with multi-view task management (Kanban, List, Calendar), daily attendance check-in/out with selfie & GPS metadata.
+  * 🏡 **Residents:** Portal (`/resident`) for creating and tracking maintenance service requests.
+* **Advanced Multi-View Task Management:**
+  * Track task states: `Pending` ➔ `In-Progress` ➔ `Completed` (Review) ➔ `Approved`.
+  * Visualizations: **Kanban Boards**, **Interactive Calendars** (centered on today in Cancún local time), **Detailed Lists**, and **Excel-like Filterable Data Tables**.
+* **GPS & EXIF Evidence Verification:**
+  * Workers capture start and finish photos.
+  * Automatic EXIF metadata parsing (`exifr`) retrieves exact GPS coordinates (`latitude`, `longitude`) and original timestamp, falling back to HTML5 Geolocation API.
+* **Cancún / Quintana Roo Timezone Support (UTC-5):**
+  * All dates, timestamps, shift closures, and calendars run natively under `America/Cancun` time zone without UTC offset shifts.
+* **Excel Data Processing & Reporting:**
+  * Bulk import of workforce and resident accounts from `.xlsx` spreadsheets.
+  * One-click downloadable Excel reports for task histories and attendance logs.
+
+---
 
 ## 💻 Tech Stack
 
-*   **Frontend & Backend:** Next.js 16 (App Router)
-*   **Database:** PostgreSQL
-*   **ORM:** Prisma
-*   **Authentication:** NextAuth.js (JWT Strategy)
-*   **Styling:** Custom CSS with Glassmorphism UI tokens
-*   **Deployment:** Railway
+* **Frontend & Backend:** Next.js 16 (App Router + Turbopack), React 19
+* **Database:** PostgreSQL (Railway)
+* **ORM:** Prisma ORM
+* **Authentication Engine:** Web Crypto API (`crypto.subtle` HMAC SHA-256)
+* **Image EXIF Processing:** `exifr`
+* **Data Import/Export:** XLSX (SheetJS)
+* **Styling:** Custom CSS with Glassmorphism UI tokens, HSL color palette, and Luxury Nautical theme (`#081C2C` Navy, `#C5A059` Gold)
+* **Deployment:** Railway.app
+
+---
 
 ## 🛠️ Getting Started (Local Development)
 
 ### Prerequisites
-
-*   Node.js (v18+)
-*   npm or yarn
-*   A PostgreSQL database (Local or Cloud)
+* Node.js (v18+)
+* npm
+* A PostgreSQL database (Local or Cloud)
 
 ### Installation
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/svelascotellez/ServiceSync.git
-    cd ServiceSync
-    ```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/svelascotellez/ServiceSync.git
+   cd ServiceSync
+   ```
 
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-3.  **Environment Variables:**
-    Create a `.env` file in the root directory and add the following variables:
-    ```env
-    DATABASE_URL="postgresql://user:password@localhost:5432/servicesync"
-    NEXTAUTH_SECRET="your-super-secret-string-here"
-    NEXTAUTH_URL="http://localhost:3001"
-    ```
+3. **Environment Variables:**
+   Create a `.env` file in the root directory:
+   ```env
+   DATABASE_URL="postgresql://user:password@localhost:5432/servicesync"
+   NEXTAUTH_SECRET="puerto-aventuras-servicesync-secret-key-2026"
+   ```
 
-4.  **Database Migration & Seeding:**
-    Push the Prisma schema to your database and generate the client. Then, seed the database with the initial Admin account.
-    ```bash
-    npx prisma db push
-    node prisma/seed.js
-    ```
-    *The default admin credentials created by the seed script are `admin@test.com` / `admin123`.*
+4. **Database Setup & Seeding:**
+   ```bash
+   npx prisma db push
+   node prisma/seed.js
+   ```
 
-5.  **Run the development server:**
-    ```bash
-    npm run dev
-    ```
-    Open [http://localhost:3001](http://localhost:3001) in your browser.
+5. **Run Development Server:**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 🏗️ Architecture
+---
 
-The app leverages Next.js Server Components and Server Actions/Route Handlers to securely communicate with the database via Prisma. 
+## 🏗️ Project Structure
 
-*   `src/app/dashboard/*`: Protected admin routes for workforce management.
-*   `src/app/worker/*`: Mobile-first interface for technicians with dedicated Kanban/Calendar views and Attendance tracking.
-*   `src/app/resident/*`: Community feedback and visibility portal, featuring task comments and photo uploads.
-*   `src/app/api/*`: RESTful JSON endpoints handling complex mutations and EXIF image processing.
+* `src/lib/auth.ts`: Native Web Crypto JWT signing, verification, and `getServerSession` helper.
+* `src/app/api/auth/login/route.ts`: Dual-mode login API supporting JSON & Form POSTs with HTTP/2 proxy safe 200 OK auto-redirects.
+* `src/app/dashboard/*`: Protected administrator routes.
+* `src/app/supervisor/*`: Protected field supervisor routes.
+* `src/app/worker/*`: Mobile-first technician interface.
+* `src/app/resident/*`: Residential service request portal.
+* `src/lib/dateUtils.ts`: Cancún timezone (`America/Cancun`) date and calendar utilities.
+* `src/lib/exportExcel.ts`: Excel export helper functions.
+
+---
 
 ## 🔒 License
 
-This project is proprietary and confidential.
+This project is proprietary software for Puerto Aventuras Field Service Management.
