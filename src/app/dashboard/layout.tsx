@@ -10,31 +10,17 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/auth/login')
-      .then(res => res.json())
+      .then(res => res.ok ? res.json() : null)
       .then(data => {
-        if (data && data.user) {
-          setUser(data.user);
-        }
+        if (data?.user) setUser(data.user);
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {});
   }, []);
-
-  if (loading) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#081C2C', color: '#C5A059' }}>
-        <div style={{ textAlign: 'center', fontSize: '1.2rem', fontWeight: 600 }}>
-          ⚓ Cargando ServiceSync...
-        </div>
-      </div>
-    );
-  }
 
   const handleLogout = async () => {
     try {

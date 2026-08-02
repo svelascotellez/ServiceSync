@@ -10,19 +10,15 @@ export default function WorkerLayout({
   children: React.ReactNode;
 }) {
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const pathname = usePathname();
 
   useEffect(() => {
     fetch('/api/auth/login')
-      .then(res => res.json())
+      .then(res => res.ok ? res.json() : null)
       .then(data => {
-        if (data && data.user) {
-          setUser(data.user);
-        }
+        if (data?.user) setUser(data.user);
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {});
   }, []);
 
   const handleLogout = async () => {
@@ -31,16 +27,6 @@ export default function WorkerLayout({
     } catch (e) {}
     window.location.href = '/login';
   };
-
-  if (loading) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#081C2C', color: '#C5A059' }}>
-        <div style={{ textAlign: 'center', fontSize: '1.2rem', fontWeight: 600 }}>
-          ⚓ Cargando ServiceSync...
-        </div>
-      </div>
-    );
-  }
 
   const NavMenu = () => (
     <nav style={{ display: 'flex', justifyContent: 'space-around', padding: '1rem', backgroundColor: 'var(--surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>

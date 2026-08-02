@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { formatCancunDate, formatCancunTime, getCancunTodayKey, formatCancunCalendarDayLabel } from '@/lib/dateUtils';
 
-export default function WorkerClient({ tasks }: { tasks: any[] }) {
+export default function WorkerClient({ tasks = [] }: { tasks?: any[] }) {
+  const safeTasks = Array.isArray(tasks) ? tasks : [];
+
   const [attendance, setAttendance] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -18,8 +20,9 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
 
   const priorityWeight: Record<string, number> = { 'Alta': 3, 'Media': 2, 'Baja': 1 };
 
-  const filteredTasks = tasks
+  const filteredTasks = safeTasks
     .filter(task => {
+      if (!task) return false;
       if (statusFilter !== 'all' && task.status !== statusFilter) return false;
       if (priorityFilter !== 'all' && task.priority !== priorityFilter) return false;
       if (searchQuery.trim()) {
@@ -32,13 +35,15 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
     })
     .sort((a, b) => {
       if (sortBy === 'dueDate') {
-        const timeA = a.dueDate ? new Date(a.dueDate).getTime() : 0;
-        const timeB = b.dueDate ? new Date(b.dueDate).getTime() : 0;
+        const timeA = a?.dueDate ? new Date(a.dueDate).getTime() : 0;
+        const timeB = b?.dueDate ? new Date(b.dueDate).getTime() : 0;
         return timeA - timeB;
       } else if (sortBy === 'priority') {
-        return (priorityWeight[b.priority] || 0) - (priorityWeight[a.priority] || 0);
+        return (priorityWeight[b?.priority] || 0) - (priorityWeight[a?.priority] || 0);
       } else {
-        return a.title.localeCompare(b.title);
+        const titleA = a?.title || '';
+        const titleB = b?.title || '';
+        return titleA.localeCompare(titleB);
       }
     });
 
@@ -159,15 +164,15 @@ export default function WorkerClient({ tasks }: { tasks: any[] }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
         <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--primary)' }}>
           <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Total Asignadas</h3>
-          <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text)' }}>{tasks.length}</p>
+          <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text)' }}>{safeTasks.length}</p>
         </div>
         <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--warning)' }}>
           <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Pendientes</h3>
-          <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text)' }}>{tasks.filter(t => t.status === 'pending' || t.status === 'in-progress').length}</p>
+          <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text)' }}>{safeTasks.filter(t => t && (t.status === 'pending' || t.status === 'in-progress')).length}</p>
         </div>
         <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--success)' }}>
           <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Terminadas / Aprobadas</h3>
-          <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text)' }}>{tasks.filter(t => t.status === 'completed' || t.status === 'approved').length}</p>
+          <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text)' }}>{safeTasks.filter(t => t && (t.status === 'completed' || t.status === 'approved')).length}</p>
         </div>
       </div>
 
