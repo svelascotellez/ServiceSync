@@ -41,21 +41,7 @@ export default function Login() {
         return;
       }
 
-      const roleRes = await fetch('/api/auth/check-role', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail }),
-      }).catch(() => null);
-
-      const roleData = roleRes ? await roleRes.json().catch(() => ({})) : {};
-      const role = roleData?.role;
-
-      const targetPath = role === 'supervisor' ? '/supervisor'
-                       : role === 'worker' ? '/worker'
-                       : role === 'resident' ? '/resident'
-                       : '/dashboard';
-
-      window.location.href = targetPath;
+      window.location.href = '/dashboard';
     } catch (err) {
       setError('Error al conectar con el servidor');
       setLoading(false);

@@ -3,6 +3,9 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { formatCancunDateTime } from '@/lib/dateUtils';
+import WorkerPage from '../worker/page';
+import SupervisorOverview from '../supervisor/page';
+import ResidentDashboardPage from '../resident/page';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,9 +17,10 @@ export default async function DashboardOverview() {
   }
 
   const role = (session.user as any).role;
-  if (role === 'supervisor') redirect('/supervisor');
-  if (role === 'worker') redirect('/worker');
-  if (role === 'resident') redirect('/resident');
+  if (role === 'supervisor') return <SupervisorOverview />;
+  if (role === 'worker') return <WorkerPage />;
+  if (role === 'resident') return <ResidentDashboardPage />;
+
   const activeWorkersCount = await prisma.user.count({ where: { role: 'worker' } });
   const totalResidentsCount = await prisma.user.count({ where: { role: 'resident' } });
 
@@ -30,7 +34,6 @@ export default async function DashboardOverview() {
     { label: 'Tareas en Progreso', value: inProgressTasksCount.toString(), icon: '🚀', color: 'var(--success)' },
   ];
 
-  // Fetch recent activity: latest completed tasks and recent check-ins
   const recentCompletedTasks = await prisma.task.findMany({
     where: { status: { in: ['completed', 'approved'] } },
     orderBy: { completedAt: 'desc' },
@@ -59,7 +62,6 @@ export default async function DashboardOverview() {
     }))
   ].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
 
-  // Active workers today (checked in today, no checkout or checkout today)
   const today = new Date();
   today.setHours(0,0,0,0);
   const activeAttendancesToday = await prisma.attendance.count({
