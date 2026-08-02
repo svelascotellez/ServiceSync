@@ -29,7 +29,7 @@ export default function Login() {
     const cleanEmail = email.trim().toLowerCase();
 
     try {
-      const res = await fetch('/api/auth/[...nextauth]', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cleanEmail, password }),
