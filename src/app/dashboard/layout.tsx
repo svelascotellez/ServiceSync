@@ -17,18 +17,16 @@ export default function DashboardLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (status === 'authenticated' && userRole) {
-      if (userRole === 'supervisor') {
-        router.replace('/supervisor');
-      } else if (userRole === 'worker') {
-        router.replace('/worker');
-      } else if (userRole === 'resident') {
-        router.replace('/resident');
-      }
+    if (status === 'authenticated' && userRole && userRole !== 'admin') {
+      const target = userRole === 'supervisor' ? '/supervisor'
+                   : userRole === 'worker' ? '/worker'
+                   : userRole === 'resident' ? '/resident'
+                   : '/login';
+      window.location.href = target;
     } else if (status === 'unauthenticated') {
-      router.replace('/login');
+      window.location.href = '/login';
     }
-  }, [userRole, status, router]);
+  }, [userRole, status]);
 
   if (status === 'loading') {
     return (
