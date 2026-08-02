@@ -13,7 +13,7 @@ export default async function DashboardOverview() {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user) {
-    redirect('/login');
+    return null;
   }
 
   const role = (session.user as any).role;
