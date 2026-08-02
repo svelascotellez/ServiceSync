@@ -108,17 +108,28 @@ export async function POST(req: Request) {
     };
 
     const token = await signJWT(userPayload);
+    const cookieHeaderValue = `servicesync_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${30 * 24 * 60 * 60}`;
 
     let response: NextResponse;
     if (isJsonRequest) {
-      response = NextResponse.json({ ok: true, user: userPayload });
+      response = NextResponse.json(
+        { ok: true, user: userPayload },
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+            'Set-Cookie': cookieHeaderValue,
+          },
+        }
+      );
     } else {
       const htmlContent = `<!DOCTYPE html>
 <html>
 <head>
   <meta http-equiv="refresh" content="0;url=${targetPath}">
 </head>
-<body style="font-family: sans-serif; text-align: center; padding-top: 50px;">
+<body style="font-family: sans-serif; text-align: center; padding-top: 50px; background-color: #081C2C; color: #FFFFFF;">
   <p>Iniciando sesión...</p>
   <script>window.location.href = "${targetPath}";</script>
 </body>
@@ -128,23 +139,10 @@ export async function POST(req: Request) {
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
           'Cache-Control': 'no-store, no-cache, must-revalidate',
+          'Set-Cookie': cookieHeaderValue,
         },
       });
     }
-    
-    response.cookies.set('servicesync_token', token, {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60,
-    });
-
-    response.cookies.set('next-auth.session-token', token, {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60,
-    });
 
     return response;
   } catch (err: any) {
