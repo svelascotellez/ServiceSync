@@ -3,6 +3,17 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { signJWT } from '@/lib/auth';
 
+function makeErrorHtml(errorType: string) {
+  const targetUrl = `/login?error=${errorType}`;
+  return new NextResponse(
+    `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${targetUrl}"></head><body><script>window.location.href="${targetUrl}";</script></body></html>`,
+    {
+      status: 200,
+      headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
+    }
+  );
+}
+
 export async function POST(req: Request) {
   try {
     let email = '';
@@ -25,7 +36,7 @@ export async function POST(req: Request) {
       if (isJsonRequest) {
         return NextResponse.json({ error: 'Correo electrónico requerido', ok: false }, { status: 400 });
       }
-      return NextResponse.redirect(new URL('/login?error=email_required', req.url), 303);
+      return makeErrorHtml('email_required');
     }
 
     const allUsers = await prisma.user.findMany().catch(() => []);
@@ -51,7 +62,7 @@ export async function POST(req: Request) {
       if (isJsonRequest) {
         return NextResponse.json({ error: 'Usuario no encontrado', ok: false }, { status: 401 });
       }
-      return NextResponse.redirect(new URL('/login?error=user_not_found', req.url), 303);
+      return makeErrorHtml('user_not_found');
     }
 
     if (password && user.passwordHash) {
@@ -78,7 +89,7 @@ export async function POST(req: Request) {
         if (isJsonRequest) {
           return NextResponse.json({ error: 'Credenciales inválidas', ok: false }, { status: 401 });
         }
-        return NextResponse.redirect(new URL('/login?error=invalid_credentials', req.url), 303);
+        return makeErrorHtml('invalid_credentials');
       }
     }
 
@@ -102,7 +113,23 @@ export async function POST(req: Request) {
     if (isJsonRequest) {
       response = NextResponse.json({ ok: true, user: userPayload });
     } else {
-      response = NextResponse.redirect(new URL(targetPath, req.url), 303);
+      const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="refresh" content="0;url=${targetPath}">
+</head>
+<body style="font-family: sans-serif; text-align: center; padding-top: 50px;">
+  <p>Iniciando sesión...</p>
+  <script>window.location.href = "${targetPath}";</script>
+</body>
+</html>`;
+      response = new NextResponse(htmlContent, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
+      });
     }
     
     response.cookies.set('servicesync_token', token, {
@@ -126,6 +153,6 @@ export async function POST(req: Request) {
     if (contentType.includes('application/json')) {
       return NextResponse.json({ error: 'Error interno del servidor', ok: false }, { status: 500 });
     }
-    return NextResponse.redirect(new URL('/login?error=server_error', req.url), 303);
+    return makeErrorHtml('server_error');
   }
 }
