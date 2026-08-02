@@ -31,16 +31,30 @@ export default function Login() {
     const result = await signIn('credentials', {
       email: cleanEmail,
       password,
-      callbackUrl: '/dashboard',
       redirect: false,
     });
 
-    if (result?.error) {
+    if (result?.error || !result?.ok) {
       setError('Credenciales inválidas');
       setLoading(false);
-    } else if (result?.url) {
-      window.location.href = result.url;
-    } else {
+      return;
+    }
+
+    try {
+      const sessionRes = await fetch('/api/auth/session');
+      const sessionData = await sessionRes.json();
+      const role = sessionData?.user?.role;
+
+      if (role === 'worker') {
+        window.location.href = '/worker';
+      } else if (role === 'supervisor') {
+        window.location.href = '/supervisor';
+      } else if (role === 'resident') {
+        window.location.href = '/resident';
+      } else {
+        window.location.href = '/dashboard';
+      }
+    } catch (err) {
       window.location.href = '/dashboard';
     }
   };
