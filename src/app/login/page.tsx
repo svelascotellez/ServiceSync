@@ -72,7 +72,7 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={(e) => { e.preventDefault(); handleLogin(e); }}>
           <div className="input-group">
             <label className="input-label" htmlFor="email">Correo Electrónico</label>
             <input 
@@ -125,7 +125,8 @@ export default function Login() {
           </div>
 
           <button 
-            type="submit" 
+            type="button" 
+            onClick={handleLogin}
             className="btn btn-gold" 
             style={{ width: '100%', padding: '0.85rem', fontSize: '1rem' }}
             disabled={loading}
