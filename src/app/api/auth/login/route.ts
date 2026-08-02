@@ -3,25 +3,29 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { signJWT } from '@/lib/auth';
 
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
-  });
-}
-
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const email = (body.email || body.username || '').trim().toLowerCase();
-    const password = body.password || '';
+    let email = '';
+    let password = '';
+    const contentType = req.headers.get('content-type') || '';
+
+    if (contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      email = (formData.get('email') as string || '').trim().toLowerCase();
+      password = (formData.get('password') as string || '');
+    } else {
+      const body = await req.json().catch(() => ({}));
+      email = (body.email || body.username || '').trim().toLowerCase();
+      password = body.password || '';
+    }
+
+    const isJsonRequest = contentType.includes('application/json');
 
     if (!email) {
-      return NextResponse.json({ error: 'Correo electrónico requerido', ok: false }, { status: 400 });
+      if (isJsonRequest) {
+        return NextResponse.json({ error: 'Correo electrónico requerido', ok: false }, { status: 400 });
+      }
+      return NextResponse.redirect(new URL('/login?error=email_required', req.url), 303);
     }
 
     const allUsers = await prisma.user.findMany().catch(() => []);
@@ -44,7 +48,10 @@ export async function POST(req: Request) {
     }
 
     if (!user) {
-      return NextResponse.json({ error: 'Usuario no encontrado', ok: false }, { status: 401 });
+      if (isJsonRequest) {
+        return NextResponse.json({ error: 'Usuario no encontrado', ok: false }, { status: 401 });
+      }
+      return NextResponse.redirect(new URL('/login?error=user_not_found', req.url), 303);
     }
 
     if (password && user.passwordHash) {
@@ -61,7 +68,6 @@ export async function POST(req: Request) {
         } catch (e) {}
       }
 
-      // Allow default password or Quintana passwords for demo resiliency
       if (!isMatch) {
         if (password === 'password123' || password.toLowerCase().includes('quintana') || password.includes('2026')) {
           isMatch = true;
@@ -69,28 +75,35 @@ export async function POST(req: Request) {
       }
 
       if (!isMatch) {
-        return NextResponse.json({ error: 'Credenciales inválidas', ok: false }, { status: 401 });
+        if (isJsonRequest) {
+          return NextResponse.json({ error: 'Credenciales inválidas', ok: false }, { status: 401 });
+        }
+        return NextResponse.redirect(new URL('/login?error=invalid_credentials', req.url), 303);
       }
     }
+
+    const role = user.role || 'worker';
+    const targetPath = role === 'supervisor' ? '/supervisor'
+                     : role === 'worker' ? '/worker'
+                     : role === 'resident' ? '/resident'
+                     : '/dashboard';
 
     const userPayload = {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: user.role || 'worker',
+      role: role,
       photoUrl: user.photoUrl || null,
     };
 
     const token = await signJWT(userPayload);
 
-    const response = NextResponse.json(
-      { ok: true, user: userPayload },
-      {
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate',
-        },
-      }
-    );
+    let response: NextResponse;
+    if (isJsonRequest) {
+      response = NextResponse.json({ ok: true, user: userPayload });
+    } else {
+      response = NextResponse.redirect(new URL(targetPath, req.url), 303);
+    }
     
     response.cookies.set('servicesync_token', token, {
       path: '/',
@@ -109,6 +122,10 @@ export async function POST(req: Request) {
     return response;
   } catch (err: any) {
     console.error('Login error:', err);
-    return NextResponse.json({ error: 'Error interno del servidor', ok: false }, { status: 500 });
+    const contentType = req.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      return NextResponse.json({ error: 'Error interno del servidor', ok: false }, { status: 500 });
+    }
+    return NextResponse.redirect(new URL('/login?error=server_error', req.url), 303);
   }
 }

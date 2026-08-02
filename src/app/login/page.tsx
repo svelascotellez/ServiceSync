@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
-export default function Login() {
-  const router = useRouter();
-  
+function LoginForm() {
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -18,61 +16,18 @@ export default function Login() {
       localStorage.clear();
       sessionStorage.clear();
     } catch (e) {}
-  }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (loading) return;
-
-    setLoading(true);
-    setError('');
-    
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanPassword = password.trim();
-
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail, password: cleanPassword }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok || !data.ok) {
-        setError(data.error || 'Credenciales inválidas');
-        setLoading(false);
-        return;
-      }
-
-      const role = data.user?.role;
-      const targetPath = role === 'supervisor' ? '/supervisor'
-                       : role === 'worker' ? '/worker'
-                       : role === 'resident' ? '/resident'
-                       : '/dashboard';
-
-      window.location.href = targetPath;
-    } catch (err: any) {
-      console.error('Login fetch error:', err);
-
-      try {
-        const checkRes = await fetch('/api/auth/login', { method: 'GET' });
-        const checkData = await checkRes.json();
-        if (checkData?.user?.role) {
-          const role = checkData.user.role;
-          const targetPath = role === 'supervisor' ? '/supervisor'
-                           : role === 'worker' ? '/worker'
-                           : role === 'resident' ? '/resident'
-                           : '/dashboard';
-          window.location.href = targetPath;
-          return;
-        }
-      } catch (checkErr) {}
-
-      setError(err?.message ? `Error: ${err.message}` : 'Error al conectar con el servidor');
-      setLoading(false);
+    const errParam = searchParams.get('error');
+    if (errParam === 'invalid_credentials') {
+      setError('Credenciales inválidas');
+    } else if (errParam === 'user_not_found') {
+      setError('Usuario no encontrado');
+    } else if (errParam === 'email_required') {
+      setError('Correo electrónico requerido');
+    } else if (errParam === 'server_error') {
+      setError('Error en el servidor');
     }
-  };
+  }, [searchParams]);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', background: 'radial-gradient(circle at 50% 30%, #0B3C5D 0%, #081C2C 100%)' }}>
@@ -98,11 +53,12 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleLogin}>
+        <form action="/api/auth/login" method="POST">
           <div className="input-group">
             <label className="input-label" htmlFor="email">Correo Electrónico</label>
             <input 
               id="email"
+              name="email"
               type="email" 
               className="input-field" 
               placeholder="nombre@ejemplo.com"
@@ -120,6 +76,7 @@ export default function Login() {
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <input 
                 id="password"
+                name="password"
                 type={showPassword ? "text" : "password"} 
                 className="input-field" 
                 style={{ paddingRight: '2.5rem', width: '100%' }}
@@ -153,10 +110,9 @@ export default function Login() {
           <button 
             type="submit"
             className="btn btn-gold" 
-            style={{ width: '100%', padding: '0.85rem', fontSize: '1rem' }}
-            disabled={loading}
+            style={{ width: '100%', padding: '0.85rem', fontSize: '1rem', cursor: 'pointer' }}
           >
-            {loading ? 'Iniciando sesión...' : 'Ingresar a ServiceSync'}
+            Ingresar a ServiceSync
           </button>
         </form>
         
@@ -171,5 +127,13 @@ export default function Login() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Cargando...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
